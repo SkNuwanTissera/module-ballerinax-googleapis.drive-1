@@ -21,7 +21,7 @@ import ballerina/http;
 # + secureSocketConfig - Represents OAuth2 direct token configurations for OAuth2 authentication 
 # + clientConfig - Provides configurations for facilitating secure communication with a remote HTTP endpoint  
 public type Configuration record {
-    http:BearerTokenConfig|http:OAuth2DirectTokenConfig clientConfig; 
+    http:BearerTokenConfig|http:OAuth2RefreshTokenGrantConfig clientConfig; 
     http:ClientSecureSocket secureSocketConfig?;
 };
 

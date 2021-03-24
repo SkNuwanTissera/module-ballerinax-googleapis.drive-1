@@ -47,7 +47,7 @@ public class EventTrigger {
     public isolated function onFileDeletedInSpecificFolderEvent(string fileId) {}
 
     public isolated function onFileUpdateEvent(string fileId) {
-        log:print("Update on file :" + fileId);
+        log:printInfo("Update on file :" + fileId);
     }
 }
 
@@ -89,6 +89,6 @@ public function main() returns error? {
     };
     drive:File|error response = driveClient->updateFileMetadataById(fileId, payloadFileMetadata);
     if (response is drive:File) {
-        log:print(response.toString());
+        log:printInfo(response.toString());
     }
 }

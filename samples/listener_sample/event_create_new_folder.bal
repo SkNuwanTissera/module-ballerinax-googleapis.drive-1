@@ -31,7 +31,7 @@ string folderName = "<NEW_FOLDER_NAME>";
 public class EventTrigger {
     
     public isolated function onNewFolderCreatedEvent(string folderId) {
-        log:print("New folder was created:" + folderId);
+        log:printInfo("New folder was created:" + folderId);
     }
 
     public isolated function onFolderDeletedEvent(string folderID) {}

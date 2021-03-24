@@ -126,7 +126,7 @@ public class EventTrigger {
     public isolated function onFolderDeletedEvent(string folderID) {}
 
     public isolated function onNewFileCreatedEvent(string fileId) {
-        log:print("New File was created:" + fileId);
+        log:printInfo("New File was created:" + fileId);
     }
 
     public isolated function onFileDeletedEvent(string fileId) {}
@@ -175,7 +175,7 @@ public function main() returns error? {
     drive:Client driveClient = check new (config);
     drive:File|error response = driveClient->createFile(fileName);
     if (response is drive:File) {
-        log:print(response.toString());
+        log:printInfo(response.toString());
     }
 }
 
@@ -189,38 +189,38 @@ public function main() returns error? {
 public class EventTrigger {
     
     public isolated function onNewFolderCreatedEvent(string folderId) {
-        log:print("New folder was created:" + folderId);
+        log:printInfo("New folder was created:" + folderId);
     }
 
     public isolated function onFolderDeletedEvent(string folderID) {
-        log:print("This folder was removed to the trashed:" + folderID);
+        log:printInfo("This folder was removed to the trashed:" + folderID);
     }
 
     public isolated function onNewFileCreatedEvent(string fileId) {
-        log:print("New File was created:" + fileId);
+        log:printInfo("New File was created:" + fileId);
     }
 
     public isolated function onFileDeletedEvent(string fileId) {
-        log:print("This File was removed to the trashed:" + fileId);
+        log:printInfo("This File was removed to the trashed:" + fileId);
     }
 
     public isolated function onNewFileCreatedInSpecificFolderEvent(string fileId) {
-        log:print("A file with Id " + fileId + "was created in side the folder specified");
+        log:printInfo("A file with Id " + fileId + "was created in side the folder specified");
     }
 
     public isolated function onNewFolderCreatedInSpecificFolderEvent(string folderId) {
-        log:print("A folder with Id " + folderId + "was created in side the folder specified");
+        log:printInfo("A folder with Id " + folderId + "was created in side the folder specified");
     }
 
     public isolated function onFolderDeletedInSpecificFolderEvent(string folderId) {
-        log:print("A folder with Id " + folderId + "was deleted in side the folder specified");
+        log:printInfo("A folder with Id " + folderId + "was deleted in side the folder specified");
     }
 
     public isolated function onFileDeletedInSpecificFolderEvent(string fileId) {
-        log:print("A file with Id " + fileId + "was deleted in side the folder specified");
+        log:printInfo("A file with Id " + fileId + "was deleted in side the folder specified");
     }
     public isolated function onFileUpdateEvent(string fileId) {
-        log:print("File updated : " + fileId);
+        log:printInfo("File updated : " + fileId);
     }
 }
 ```

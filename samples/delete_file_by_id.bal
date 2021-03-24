@@ -49,7 +49,7 @@ public function main() {
     //If successful, this method returns an empty response body.
     boolean|error res = driveClient->deleteFile(fileId);
     if(res is boolean){
-        log:print("File Deleted");
+        log:printInfo("File Deleted");
     } else {
         log:printError(res.message());
     }

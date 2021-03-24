@@ -40,7 +40,7 @@ public function main() {
     stream<drive:File>|error res = driveClient->getAllSpreadsheets();
     if (res is stream<drive:File>){
         error? e = res.forEach(function (drive:File file) {
-            log:print(res?.id.toString());
+            log:printInfo(res?.id.toString());
         });
     }
 }

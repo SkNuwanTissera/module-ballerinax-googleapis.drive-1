@@ -42,7 +42,7 @@ public class EventTrigger {
     public isolated function onNewFileCreatedInSpecificFolderEvent(string fileId) {}
 
     public isolated function onNewFolderCreatedInSpecificFolderEvent(string folderId) {
-        log:print("New folder was created" +folderId+ " in the specied folder: .");
+        log:printInfo("New folder was created" +folderId+ " in the specied folder: .");
     }
 
     public isolated function onFolderDeletedInSpecificFolderEvent(string folderId) {}
@@ -86,6 +86,6 @@ public function main() returns error? {
     drive:Client driveClient = check new (config);
     drive:File|error response = driveClient->createFolder(folderName, parentFolderId);
     if (response is drive:File) {
-        log:print(response.toString());
+        log:printInfo(response.toString());
     }
 }

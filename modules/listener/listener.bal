@@ -79,7 +79,7 @@ public class DriveEventListener {
         self.channelUuid = self.watchResponse?.id.toString();
         self.currentToken = self.watchResponse?.startPageToken.toString();
         self.watchResourceId = self.watchResponse?.resourceId.toString();
-        log:print("Watch channel started in Google, id : " + self.channelUuid);
+        log:printInfo("Watch channel started in Google, id : " + self.channelUuid);
     }
     
     public isolated function attach(http:Service s, string[]|string? name) returns error? {
@@ -108,7 +108,7 @@ public class DriveEventListener {
     # + request - The HTTP request.
     # + return - Returns error, if unsuccessful.
     public function findEventType(http:Caller caller, http:Request request) returns @tainted error? {
-        log:print("< RECEIVING A CALLBACK <");
+        log:printInfo("< RECEIVING A CALLBACK <");
         string channelID = check request.getHeader("X-Goog-Channel-ID");
         string messageNumber = check request.getHeader("X-Goog-Message-Number");
         string resourceStates = check request.getHeader("X-Goog-Resource-State");
@@ -120,23 +120,23 @@ public class DriveEventListener {
             foreach drive:ChangesListResponse item in response {
                 self.currentToken = item?.newStartPageToken.toString();
                 if (self.isWatchOnSpecificResource && self.isAFolder) {
-                    log:print("Folder watch response processing");
+                    log:printInfo("Folder watch response processing");
                     check mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
                     <@untainted> self.driveClient, <@untainted> self.eventService, <@untainted> self.currentFileStatus);
                     check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
                 } else if (self.isWatchOnSpecificResource && self.isAFolder == false) {
-                    log:print("File watch response processing");
+                    log:printInfo("File watch response processing");
                     check mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, self.eventService, 
                     self.currentFileStatus);
                     check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
                 } else {
-                    log:print("Whole drive watch response processing");
+                    log:printInfo("Whole drive watch response processing");
                     check mapEvents(item, self.driveClient, self.eventService, self.currentFileStatus);
                     check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
                 }
             }
         }
-        log:print("< RECEIVED >");
+        log:printInfo("< RECEIVED >");
     }
 
     # Stop all subscriptions for listening.
@@ -145,9 +145,9 @@ public class DriveEventListener {
     public function stopWatchChannel() returns @tainted error? {
         boolean|error response = self.driveClient->watchStop(self.channelUuid, self.watchResourceId);
         if (response is boolean) {
-            log:print("Watch channel stopped");
+            log:printInfo("Watch channel stopped");
         } else {
-            log:print("Watch channel was not stopped");
+            log:printInfo("Watch channel was not stopped");
             return response;
         }
     }

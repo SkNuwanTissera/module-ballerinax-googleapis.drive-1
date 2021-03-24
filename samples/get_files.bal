@@ -47,7 +47,7 @@ public function main() {
         error? e = res.forEach(function (drive:File file) {
             json|error jsonObject = file.cloneWithType(json);
             if (jsonObject is json) {
-                log:print(jsonObject.toString());
+                log:printInfo(jsonObject.toString());
             }
         });
     }

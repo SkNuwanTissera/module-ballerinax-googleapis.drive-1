@@ -44,7 +44,7 @@ public class EventTrigger {
     public isolated function onNewFolderCreatedInSpecificFolderEvent(string folderId) {}
 
     public isolated function onFolderDeletedInSpecificFolderEvent(string folderId) {
-        log:print("A folder with Id " + folderId + "was deleted in side the folder specified");
+        log:printInfo("A folder with Id " + folderId + "was deleted in side the folder specified");
     }
 
     public isolated function onFileDeletedInSpecificFolderEvent(string fileId) {}

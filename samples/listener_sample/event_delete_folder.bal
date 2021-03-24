@@ -33,7 +33,7 @@ public class EventTrigger {
     public isolated function onNewFolderCreatedEvent(string folderId) {}
 
     public isolated function onFolderDeletedEvent(string folderID) {
-        log:print("This folder was removed to the trashed:" + folderID);
+        log:printInfo("This folder was removed to the trashed:" + folderID);
     }
 
     public isolated function onNewFileCreatedEvent(string fileId) {}

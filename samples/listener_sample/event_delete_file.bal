@@ -37,7 +37,7 @@ public class EventTrigger {
     public isolated function onNewFileCreatedEvent(string fileId) {}
 
     public isolated function onFileDeletedEvent(string fileId) {
-        log:print("This File was removed to the trashed:" + fileId);
+        log:printInfo("This File was removed to the trashed:" + fileId);
     }
 
     public isolated function onNewFileCreatedInSpecificFolderEvent(string fileId) {}

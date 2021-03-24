@@ -276,7 +276,7 @@ Configuration config = {
     stream<File>|error response = driveClient->getAllSpreadsheets();
      if (response is stream<File>){
         error? e = response.forEach(isolated function (File response) {
-            log:print(response?.id.toString());
+            log:printInfo(response?.id.toString());
         });
     } else {
         log:printError(response.message());

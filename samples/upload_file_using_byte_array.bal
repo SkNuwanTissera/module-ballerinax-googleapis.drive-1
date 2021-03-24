@@ -47,7 +47,7 @@ public function main() {
     //Print file ID
     if(res is drive:File){
         string id = res?.id.toString();
-        log:print(id);
+        log:printInfo(id);
     } else {
         log:printError(res.message());
     }

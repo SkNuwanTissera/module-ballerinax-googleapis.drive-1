@@ -46,7 +46,7 @@ public function main() {
     //Print download link
     if(response is string){
         string downloadLink = response;
-        log:print(downloadLink);
+        log:printInfo(downloadLink);
     } else {
         log:printError(response.message());
     }

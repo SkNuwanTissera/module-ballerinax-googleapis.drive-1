@@ -50,7 +50,7 @@ public function main() {
     stream<drive:File>|error response = driveClient->filterFiles(filterString);
     if (response is stream<drive:File>){
         error? e = response.forEach(isolated function (drive:File response) {
-            log:print(response?.id.toString());
+            log:printInfo(response?.id.toString());
         });
     } else {
         log:printError(response.message());

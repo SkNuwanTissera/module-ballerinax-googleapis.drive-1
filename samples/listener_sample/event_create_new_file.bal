@@ -35,7 +35,7 @@ public class EventTrigger {
     public isolated function onFolderDeletedEvent(string folderID) {}
 
     public isolated function onNewFileCreatedEvent(string fileId) {
-        log:print("New File was created:" + fileId);
+        log:printInfo("New File was created:" + fileId);
     }
 
     public isolated function onFileDeletedEvent(string fileId) {}
@@ -84,6 +84,6 @@ public function main() returns error? {
     drive:Client driveClient = check new (config);
     drive:File|error response = driveClient->createFile(fileName);
     if (response is drive:File) {
-        log:print(response.toString());
+        log:printInfo(response.toString());
     }
 }

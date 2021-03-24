@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/encoding;
+import ballerina/url;
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
@@ -24,7 +24,7 @@ import ballerina/log;
 # + httpClient - Drive client
 # + path - GET URI path
 # + return - JSON or error if not suceeded
-function sendRequest(http:Client httpClient, string path) returns @tainted json|error {
+isolated function sendRequest(http:Client httpClient, string path) returns @tainted json|error {
     http:Response httpResponse = <http:Response> check httpClient->get(<@untainted>path);
     int statusCode = httpResponse.statusCode;
     json|http:ClientError jsonResponse = httpResponse.getJsonPayload();
@@ -44,7 +44,7 @@ function sendRequest(http:Client httpClient, string path) returns @tainted json|
 # + httpClient - Drive client
 # + path - DELETE URI path
 # + return - boolean or error if not suceeded, True if Deleted successfully.
-function deleteRequest(http:Client httpClient, string path) returns @tainted boolean|error {
+isolated function deleteRequest(http:Client httpClient, string path) returns @tainted boolean|error {
     http:Response httpResponse = <http:Response> check httpClient->delete(<@untainted>path);
     if(httpResponse.statusCode == http:STATUS_NO_CONTENT){
         return true;
@@ -57,7 +57,7 @@ function deleteRequest(http:Client httpClient, string path) returns @tainted boo
 # 
 # + httpClient - Drive client
 # + return - boolean or error if not suceeded, True if Deleted successfully.
-function stopChannelRequest(http:Client httpClient, string path, json jsonPayload) returns @tainted boolean|error {
+isolated function stopChannelRequest(http:Client httpClient, string path, json jsonPayload) returns @tainted boolean|error {
     http:Request httpRequest = new;
     if (jsonPayload != ()) {
         httpRequest.setJsonPayload(<@untainted>jsonPayload);
@@ -77,7 +77,7 @@ function stopChannelRequest(http:Client httpClient, string path, json jsonPayloa
 # + path - POST URI path
 # + jsonPayload - Payload of the request.
 # + return - json or error if not suceeded.
-function sendRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
+isolated function sendRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
     http:Request httpRequest = new;
     if (jsonPayload != ()) {
         httpRequest.setJsonPayload(<@untainted>jsonPayload);
@@ -102,7 +102,7 @@ function sendRequestWithPayload(http:Client httpClient, string path, json jsonPa
 # + path - PATCH URI path
 # + jsonPayload - Payload of the request
 # + return - json or error if not suceeded.
-function updateRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
+isolated function updateRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
     http:Request httpRequest = new;
     if (jsonPayload != ()) {
         httpRequest.setJsonPayload(<@untainted>jsonPayload);
@@ -127,7 +127,7 @@ function updateRequestWithPayload(http:Client httpClient, string path, json json
 # + path - POST URI path
 # + jsonPayload - Payload of the request
 # + return - json or error if not suceeded.
-function uploadRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
+isolated function uploadRequestWithPayload(http:Client httpClient, string path, json jsonPayload) returns @tainted json|error {
     http:Request httpRequest = new;
     if (jsonPayload != ()) {
         httpRequest.setJsonPayload(<@untainted>jsonPayload);
@@ -199,7 +199,7 @@ isolated function prepareQueryUrl(string[] paths, string[] queryParamNames, stri
     int i = 0;
     foreach var name in queryParamNames {
         string value = queryParamValues[i];
-        var encoded = encoding:encodeUriComponent(value, ENCODING_CHARSET);
+        string|url:Error encoded = url:encode(value, ENCODING_CHARSET);
         if (encoded is string) {
             if (first) {
                 url = url + name + EQUAL + encoded;
@@ -208,7 +208,7 @@ isolated function prepareQueryUrl(string[] paths, string[] queryParamNames, stri
                 url = url + AMPERSAND + name + EQUAL + encoded;
             }
         } else {
-            log:printError(UNABLE_TO_ENCODE + value, err = encoded);
+            log:printError(UNABLE_TO_ENCODE + value, 'error = encoded);
             break;
         }
         i = i + 1;
@@ -436,7 +436,7 @@ isolated function prepareUrlwithFileListOptional(ListFilesOptional? optional = (
 # + path - Formatted URI 
 # + filePath - File path subjected to upload
 # + return - Json response or Error
-function uploadFiles(http:Client httpClient, string path, string filePath) returns @tainted json|error {
+isolated function uploadFiles(http:Client httpClient, string path, string filePath) returns @tainted json|error {
     http:Request httpRequest = new;
     byte[] fileContentByteArray = check io:fileReadBytes(filePath);
     httpRequest.setHeader(CONTENT_LENGTH ,fileContentByteArray.length().toString());
@@ -460,7 +460,7 @@ function uploadFiles(http:Client httpClient, string path, string filePath) retur
 # + path - Formatted URI 
 # + byteArray - Byte Array subjected to upload
 # + return - Json response or Error
-function uploadFileWithByteArray(http:Client httpClient, string path, byte[] byteArray) returns @tainted json|error {
+isolated function uploadFileWithByteArray(http:Client httpClient, string path, byte[] byteArray) returns @tainted json|error {
     http:Request httpRequest = new;
     httpRequest.setHeader(CONTENT_LENGTH ,byteArray.length().toString());
     httpRequest.setBinaryPayload(<@untainted> byteArray);
@@ -483,7 +483,7 @@ function uploadFileWithByteArray(http:Client httpClient, string path, byte[] byt
 # + httpClient - The HTTP Client 
 # + fields - The paths of the fields you want included in the response
 # + return - If successful, returns `About`. Else returns `error`
-function getDriveInfo(http:Client httpClient, string? fields) returns @tainted About|error {
+isolated function getDriveInfo(http:Client httpClient, string? fields) returns @tainted About|error {
     string path = DRIVE_PATH + ABOUT + QUESTION_MARK + FIELDS + EQUAL + _ALL;
     if (fields is string) {
         path = DRIVE_PATH + ABOUT + QUESTION_MARK + FIELDS + EQUAL + fields;
@@ -503,7 +503,7 @@ function getDriveInfo(http:Client httpClient, string? fields) returns @tainted A
 # + fileId - ID of the file to retreive
 # + optional - 'GetFileOptional' used to add query parameters to the request
 # + return - If successful, returns `File`. Else returns `error`
-function getFileById(http:Client httpClient, string fileId,  GetFileOptional? optional = ()) 
+isolated function getFileById(http:Client httpClient, string fileId,  GetFileOptional? optional = ()) 
                         returns @tainted File|error {
     string path = prepareUrlWithFileOptional(fileId, optional);
     json response = check sendRequest(httpClient, path);
@@ -521,7 +521,7 @@ function getFileById(http:Client httpClient, string fileId,  GetFileOptional? op
 # + fileId - ID of the file to delete
 # + optional - 'DeleteFileOptional' used to add query parameters to the request
 # + return - If successful, returns `boolean` as true. Else returns `error`
-function deleteFileById(http:Client httpClient, string fileId, DeleteFileOptional? optional = ()) 
+isolated function deleteFileById(http:Client httpClient, string fileId, DeleteFileOptional? optional = ()) 
                             returns @tainted boolean|error {
     string path = prepareUrlWithDeleteOptional(fileId, optional);
     boolean|error response = deleteRequest(httpClient, path);
@@ -536,7 +536,7 @@ function deleteFileById(http:Client httpClient, string fileId, DeleteFileOptiona
 # + optional - 'CopyFileOptional' used to add query parameters to the request
 # + fileResource - 'File' can added as a payload to change metadata
 # + return - If successful, returns `File`. Else returns `error`
-function copyFile(http:Client httpClient, string fileId, CopyFileOptional? optional = (), 
+isolated function copyFile(http:Client httpClient, string fileId, CopyFileOptional? optional = (), 
                  File? fileResource = ()) returns @tainted File|error {
     json payload = check fileResource.cloneWithType(json);
     string path = prepareUrlWithCopyOptional(fileId, optional);
@@ -556,7 +556,7 @@ function copyFile(http:Client httpClient, string fileId, CopyFileOptional? optio
 # + optional - 'UpdateFileMetadataOptional' used to add query parameters to the request
 # + fileResource - 'File' can added as a payload to change metadata
 # + return - If successful, returns `File`. Else returns `error`
-function updateFileById(http:Client httpClient, string fileId, File? fileResource = (), 
+isolated function updateFileById(http:Client httpClient, string fileId, File? fileResource = (), 
                             UpdateFileMetadataOptional? optional = ()) returns @tainted File|error {
     json payload = check fileResource.cloneWithType(json);
     string path = prepareUrlWithUpdateOptional(fileId, optional);
@@ -575,7 +575,7 @@ function updateFileById(http:Client httpClient, string fileId, File? fileResourc
 # + optional - 'CreateFileOptional' used to add query parameters to the request
 # + fileData - 'File' Metadata is send to in the payload 
 # + return - If successful, returns `File`. Else returns `error`
-function createMetaDataFile(http:Client httpClient, File? fileData = (), CreateFileOptional? optional = ()) 
+isolated function createMetaDataFile(http:Client httpClient, File? fileData = (), CreateFileOptional? optional = ()) 
                                 returns @tainted File|error {
     json payload = check fileData.cloneWithType(json);
     string path = prepareUrlwithMetadataFileOptional(optional);
@@ -595,7 +595,7 @@ function createMetaDataFile(http:Client httpClient, File? fileData = (), CreateF
 # + optional - 'UpdateFileMetadataOptional' used to add query parameters to the request
 # + fileMetadata - 'File' Metadata is send to in the payload 
 # + return - If successful, returns `File`. Else returns `error`
-function uploadFile(http:Client httpClient, string filePath, File? fileMetadata = (), 
+isolated function uploadFile(http:Client httpClient, string filePath, File? fileMetadata = (), 
                         UpdateFileMetadataOptional? optional = ()) returns @tainted File|error {    
     string path = prepareUrl([UPLOAD, DRIVE_PATH, FILES]);  
     json response = check uploadFiles(httpClient, path, filePath);  
@@ -618,7 +618,7 @@ function uploadFile(http:Client httpClient, string filePath, File? fileMetadata 
 # + httpClient - The HTTP Client
 # + optional - 'ListFilesOptional' used to add query parameters to the request
 # + return - If successful, returns stream of files `stream<File>`. Else returns `error`
-function getFiles(http:Client httpClient, ListFilesOptional? optional) returns @tainted stream<File>|error {
+isolated function getFiles(http:Client httpClient, ListFilesOptional? optional) returns @tainted stream<File>|error {
     File[] files = [];
     return getFilesStream(httpClient, files, optional);
 }
@@ -629,7 +629,7 @@ function getFiles(http:Client httpClient, ListFilesOptional? optional) returns @
 # + files - File array
 # + optional - 'ListFilesOptional' used to add query parameters to the request
 # + return - File stream on success, else an error
-function getFilesStream(http:Client httpClient, @tainted File[] files, ListFilesOptional? optional = ()) 
+isolated function getFilesStream(http:Client httpClient, @tainted File[] files, ListFilesOptional? optional = ()) 
                             returns @tainted stream<File>|error {
     string path = prepareUrlwithFileListOptional(optional);
     json resp = check sendRequest(httpClient, path);
@@ -659,7 +659,7 @@ function getFilesStream(http:Client httpClient, @tainted File[] files, ListFiles
 # + optional - 'UpdateFileMetadataOptional' used to add query parameters to the request
 # + fileMetadata - 'File' Metadata is send to in the payload 
 # + return - If successful, returns `File`. Else returns `error`
-function uploadFileUsingByteArray(http:Client httpClient, byte[] byteArray, File? fileMetadata = (), 
+isolated function uploadFileUsingByteArray(http:Client httpClient, byte[] byteArray, File? fileMetadata = (), 
                                     UpdateFileMetadataOptional? optional = ()) returns @tainted File|error {    
     string path = prepareUrl([UPLOAD, DRIVE_PATH, FILES]);
     json response = check uploadFileWithByteArray(httpClient, path, byteArray);
@@ -687,7 +687,7 @@ function uploadFileUsingByteArray(http:Client httpClient, byte[] byteArray, File
 # + fileWatchRequest - 'WatchResponse' record as request body of the request.
 # + optional - 'WatchFileOptional' object with optional params.
 # + return - If successful, returns `WatchResponse`. Else returns `error` 
-function watchFilesById(http:Client httpClient, string fileId, WatchResponse? fileWatchRequest = (), 
+isolated function watchFilesById(http:Client httpClient, string fileId, WatchResponse? fileWatchRequest = (), 
                         WatchFileOptional? optional = ()) returns @tainted WatchResponse|error {
     string path = prepareUrlwithWatchFileOptional(optional,fileId);
     json payload = check fileWatchRequest.cloneWithType(json);
@@ -704,7 +704,7 @@ function watchFilesById(http:Client httpClient, string fileId, WatchResponse? fi
 # + httpClient - The HTTP Client
 # + fileWatchRequest - 'WatchResponse' object
 # + return - If successful, returns `WatchResponse`. Else returns `error` 
-function watchAllFiles(http:Client httpClient, WatchResponse fileWatchRequest, WatchFileOptional? optional = ()) 
+isolated function watchAllFiles(http:Client httpClient, WatchResponse fileWatchRequest, WatchFileOptional? optional = ()) 
                         returns @tainted WatchResponse|error {
     string path = prepareUrlwithWatchFileOptional(optional);
     json payload = check fileWatchRequest.cloneWithType(json);
@@ -721,7 +721,7 @@ function watchAllFiles(http:Client httpClient, WatchResponse fileWatchRequest, W
 # + httpClient - The HTTP Client
 # + fileWatchRequest - Id of the file that needs to be subscribed for watching
 # + return - If successful, returns `json`. Else returns `error` 
-function stopWatch(http:Client httpClient, WatchResponse fileWatchRequest) returns @tainted boolean|error {
+isolated function stopWatch(http:Client httpClient, WatchResponse fileWatchRequest) returns @tainted boolean|error {
     string path = prepareUrl([DRIVE_PATH, CHANNELS, STOP]);
     json payload = check fileWatchRequest.cloneWithType(json);
     boolean resp = check stopChannelRequest(httpClient, path, payload);
@@ -770,10 +770,10 @@ isolated function prepareUrlwithWatchFileOptional(WatchFileOptional? optional = 
 #               'nextPageToken' from the previous response or to the response from the getStartPageToken method.
 # + optional - 'ChangesListOptional' object with optionals
 # + return - If successful, returns `json`. Else returns `error` 
-function listChangesByPageToken(http:Client httpClient, string pageToken, ChangesListOptional? optional = ()) 
+isolated function listChangesByPageToken(http:Client httpClient, string pageToken, ChangesListOptional? optional = ()) 
                                     returns @tainted ChangesListResponse|error {
     string path = prepareUrlwithChangesListOptional(pageToken, optional);
-    log:print(path);
+    log:printInfo(path);
     json jsonResponse = check sendRequest(httpClient, path);
     ChangesListResponse response = check jsonResponse.cloneWithType(ChangesListResponse);
     return response;
@@ -834,7 +834,7 @@ isolated function prepareUrlwithChangesListOptional(string pageToken, ChangesLis
 # 
 # + httpClient - The HTTP Client
 # + return - If successful, returns `string`. Else returns `error` 
-function getStartPageToken(http:Client httpClient) returns @tainted string|error {
+isolated function getStartPageToken(http:Client httpClient) returns @tainted string|error {
     string path = prepareUrl([DRIVE_PATH, CHANGES, START_PAGE_TOKEN]);
     json jsonResponse = check sendRequest(httpClient, path);
     StartPageTokenResponse response = check jsonResponse.cloneWithType(StartPageTokenResponse);
