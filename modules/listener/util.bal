@@ -17,7 +17,6 @@
 import ballerinax/googleapis_drive as drive;
 import ballerina/log;
 import ballerina/time;
-import ballerina/regex;
 
 # Subscribes to all the changes or specific fileId.
 # + callbackURL - Registered callback URL of the 
@@ -25,7 +24,7 @@ import ballerina/regex;
 # + fileId - FileId that you want to initiate watch operations. Optional. 
 #            Dont specify if you want TO trigger the listener for all the changes.
 # + return - 'drive:WatchResponse' on success and error if unsuccessful. 
-function startWatch(string callbackURL, drive:Client driveClient, string? fileId = ()) 
+isolated function startWatch(string callbackURL, drive:Client driveClient, string? fileId = ()) 
                         returns @tainted drive:WatchResponse|error {
     if (fileId is string) {
         // Watch for specified file changes
@@ -41,7 +40,7 @@ function startWatch(string callbackURL, drive:Client driveClient, string? fileId
 # + pageToken - The token for continuing a previous list request on the next page. This should be set to the value of 
 #               'nextPageToken' from the previous response or to the response from the getStartPageToken method.
 # + return - 'drive:ChangesListResponse[]' on success and error if unsuccessful. 
-function getAllChangeList(string pageToken, drive:Client driveClient) 
+isolated function getAllChangeList(string pageToken, drive:Client driveClient) 
                           returns @tainted drive:ChangesListResponse[]|error {
     drive:ChangesListResponse[] changeList = [];
     string? token = pageToken;
@@ -58,7 +57,7 @@ function getAllChangeList(string pageToken, drive:Client driveClient)
 # + driveClient - Http client for client connection.
 # + eventService - 'OnEventService' record that represents all events.
 # + return - if unsucessful, returns error. 
-function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClient, OnEventService eventService, 
+isolated function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClient, OnEventService eventService, 
                    json[] statusStore) returns @tainted error? {
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
@@ -97,7 +96,7 @@ function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClien
 # + driveClient - Http client for client connection.
 # + eventService - 'OnEventService' record that represents all events.
 # + return - if unsucessful, returns error. 
-function identifyFolderEvent(string folderId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
+isolated function identifyFolderEvent(string folderId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
                              boolean isSepcificFolder = false, string? specFolderId = ()) returns @tainted error? {
     drive:File folder = check driveClient->getFile(folderId, "createdTime,modifiedTime,trashed,parents");
     log:printInfo(folder.toString());
@@ -132,7 +131,7 @@ function identifyFolderEvent(string folderId, OnEventService eventService, drive
 # + driveClient - Http client for client connection.
 # + eventService - 'OnEventService' record that represents all events.
 # + return - if unsucessful, returns error. 
-function identifyFileEvent(string fileId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
+isolated function identifyFileEvent(string fileId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
                            boolean isSepcificFolder = false, string? specFolderId = ()) returns @tainted error? {
     drive:File file = check driveClient->getFile(fileId, "createdTime,modifiedTime,trashed,parents");
     boolean isExisitingFile = check checkAvailability(fileId, statusStore);
@@ -166,12 +165,12 @@ function identifyFileEvent(string fileId, OnEventService eventService, drive:Cli
 # + driveClient - Http client for Drive connection. 
 # + optionalSearch - 'ListFilesOptional' object that is used during listing objects in drive.
 # + curretStatus - JSON that carries the current status.
-function getAllMetaData(drive:Client driveClient, drive:ListFilesOptional optionalSearch, json[] curretStatus) {
+public function getAllMetaData(drive:Client driveClient, drive:ListFilesOptional optionalSearch, json[] curretStatus) {
     stream<drive:File>|error res = driveClient->getFiles(optionalSearch);
     if (res is stream<drive:File>) {
         error? e = res.forEach(function(drive:File file) {
                                    json output = checkpanic file.cloneWithType(json);
-                                    curretStatus.push(output);
+                                   curretStatus.push(output);
                                });
     }
 }
@@ -213,7 +212,7 @@ function getCurrentStatusOfDrive(drive:Client driveClient, json[] curretStatus, 
 # + resourceId - An opaque ID that identifies the resource being watched on this channel.
 #                Stable across different API versions.
 # + return - If unsuccessful, return error.
-function getCurrentStatusOfFile(drive:Client driveClient, json[] curretStatus, string resourceId) 
+isolated function getCurrentStatusOfFile(drive:Client driveClient, json[] curretStatus, string resourceId) 
                                 returns @tainted error? {
     curretStatus.removeAll();
     drive:File response = check driveClient->getFile(resourceId, "createdTime,modifiedTime,trashed");
@@ -247,7 +246,7 @@ isolated function checkAvailability(string itemID, json[] statusStore) returns b
 # + folderId - Id that uniquely represents a folder. 
 # + driveClient - Drive connecter client.
 # + return - If unsuccessful, return error.
-function validateSpecificFolderExsistence(string folderId, drive:Client driveClient) returns @tainted error? {
+isolated function validateSpecificFolderExsistence(string folderId, drive:Client driveClient) returns @tainted error? {
     drive:File folder = check driveClient->getFile(folderId, 
     "createdTime,modifiedTime,trashed,viewedByMeTime,viewedByMe");
     if (folder?.trashed == true) {
@@ -263,7 +262,7 @@ function validateSpecificFolderExsistence(string folderId, drive:Client driveCli
 # + driveClient - Drive connecter client.
 # + eventService - 'OnEventService' object.
 # + return - If unsuccessful, return error.
-function mapEventForSpecificResource(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
+isolated function mapEventForSpecificResource(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
                                      OnEventService eventService, json[] statusStore) returns @tainted error? {
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
@@ -288,7 +287,7 @@ function mapEventForSpecificResource(string resourceId, drive:ChangesListRespons
 # + driveClient - Drive connecter client
 # + eventService - 'OnEventService' object 
 # + return - If it is modified, returns boolean(true). Else error.
-function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
+isolated function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
                              OnEventService eventService, json[] statusStore) returns @tainted error? {
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
@@ -321,18 +320,12 @@ function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse change
 # + lastRecordedTime - The Folder Id for the parent folder.
 # + return - If it is modified, returns boolean(true). Else error.
 isolated function checkforModificationAftertheLastOne(string eventTime, string lastRecordedTime) returns boolean|error {
-    string timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     boolean isModified = false;
-    string eventTimeFormated = regex:replaceAll(eventTime, "Z", "+0000");
-    string lastRecordedFormated = regex:replaceAll(lastRecordedTime, "Z", "+0000");
-    time:Time eventTimeUNIX = check time:parse(eventTimeFormated, timeFormat);
-    time:Time lastRecordedTimeUNIX = check time:parse(lastRecordedFormated, timeFormat);
-    time:Duration due = check time:getDifference(eventTimeUNIX, lastRecordedTimeUNIX);
-    foreach int item in due {
-        if (item < 0) {
-            isModified = true;
-            break;
-        }
+    time:Utc eventTimeUNIX = check time:utcFromString(eventTime);
+    time:Utc lastRecordedTimeUNIX = check time:utcFromString(lastRecordedTime);
+    time:Seconds due = time:utcDiffSeconds(eventTimeUNIX, lastRecordedTimeUNIX);
+    if (due < 0) {
+        isModified = true;
     }
     return isModified;
 }
@@ -342,7 +335,7 @@ isolated function checkforModificationAftertheLastOne(string eventTime, string l
 # + driveClient - Drive client connecter. 
 # + specificParentFolderId - The Folder Id for the parent folder.
 # + return - If successful, returns boolean. Else error.
-function checkMimeType(drive:Client driveClient, string specificParentFolderId) returns @tainted boolean|error {
+isolated function checkMimeType(drive:Client driveClient, string specificParentFolderId) returns @tainted boolean|error {
     drive:File item = check driveClient->getFile(specificParentFolderId, "mimeType,trashed");
     if (item?.mimeType.toString() == FOLDER) {
         return true;
