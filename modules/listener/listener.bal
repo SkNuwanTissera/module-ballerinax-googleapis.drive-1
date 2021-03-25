@@ -142,7 +142,7 @@ public class DriveEventListener {
     # Stop all subscriptions for listening.
     # 
     # + return - Returns error, if unsuccessful.
-    public function stopWatchChannel() returns @tainted error? {
+    public isolated function stopWatchChannel() returns @tainted error? {
         boolean|error response = self.driveClient->watchStop(self.channelUuid, self.watchResourceId);
         if (response is boolean) {
             log:printInfo("Watch channel stopped");
