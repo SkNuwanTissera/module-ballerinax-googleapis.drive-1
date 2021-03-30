@@ -81,8 +81,15 @@ ListenerConfiguration congifuration = {
 listener DriveEventListener gDrivelistener = new (congifuration);
 
 service / on gDrivelistener {
-    resource function post gdrive(http:Caller caller, http:Request request) returns string|error? {
-        error? procesOutput = gDrivelistener.findEventType(caller, request);
+    resource function post gdrive(http:Caller caller, http:Request request) returns @tainted error? {
+        EventInfo? eventInfo = check gDrivelistener.findEventType(caller, request);
+        if (eventInfo?.eventType == "CREATED"){
+            log:print("((((((((((((((((CREATED....))))))))))))))))");
+        } else if (eventInfo?.eventType == "DELETED" && eventInfo?.onSpecifiedFolder == false) {
+            log:print("((((((((((((((((DELETED....))))))))))))))))");
+        }  else if (eventInfo?.eventType == "UPDATED" && eventInfo?.onSpecifiedFolder == false) {
+            log:print("((((((((((((((((UPDATED....)))))))))))))))) ID : "+eventInfo?.fileOrFolderId.toString());
+        }
         http:Response response = new;
         var result = caller->respond(response);
         if (result is error) {
@@ -91,7 +98,7 @@ service / on gDrivelistener {
     }
 }
 
-@test:Config {enable: false}
+@test:Config {enable: true}
 public isolated function testDriveAPITrigger() {
     log:print("gDriveClient -> watchFiles()");
     int i = 0;
