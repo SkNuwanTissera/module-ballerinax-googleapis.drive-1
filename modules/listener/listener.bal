@@ -107,7 +107,7 @@ public class DriveEventListener {
     # + caller - The http caller object for responding to requests 
     # + request - The HTTP request.
     # + return - Returns error, if unsuccessful.
-    public function findEventType(http:Caller caller, http:Request request) returns @tainted error? {
+    public function findEventType(http:Caller caller, http:Request request) returns @tainted EventInfo|error? {
         log:print("< RECEIVING A CALLBACK <");
         string channelID = check request.getHeader("X-Goog-Channel-ID");
         string messageNumber = check request.getHeader("X-Goog-Message-Number");
@@ -121,18 +121,18 @@ public class DriveEventListener {
                 self.currentToken = item?.newStartPageToken.toString();
                 if (self.isWatchOnSpecificResource && self.isAFolder) {
                     log:print("Folder watch response processing");
-                    check mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
+                    // check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+                    return mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
                     <@untainted> self.driveClient, <@untainted> self.eventService, <@untainted> self.currentFileStatus);
-                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
                 } else if (self.isWatchOnSpecificResource && self.isAFolder == false) {
                     log:print("File watch response processing");
-                    check mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, self.eventService, 
+                    // check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+                    return mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, self.eventService, 
                     self.currentFileStatus);
-                    check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
                 } else {
                     log:print("Whole drive watch response processing");
-                    check mapEvents(item, self.driveClient, self.eventService, self.currentFileStatus);
-                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
+                    // check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
+                    return mapEvents(item, self.driveClient, self.eventService, self.currentFileStatus);
                 }
             }
         }
