@@ -77,3 +77,11 @@ public type OnEventService object {
     public isolated function onFileDeletedInSpecificFolderEvent(string fileId);
     public isolated function onFileUpdateEvent(string fileId);
 };
+
+# Record type used to handle the Events
+public type EventInfo record {
+    string eventType?;
+    string fileOrFolderId?;
+    boolean isFolder = false;
+    boolean onSpecifiedFolder = false;
+};
