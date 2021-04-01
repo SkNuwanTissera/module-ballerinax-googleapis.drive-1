@@ -56,10 +56,9 @@ function getAllChangeList(string pageToken, drive:Client driveClient)
 # Maps Events to Change records
 # + changeList - 'ChangesListResponse' record that contains the whole changeList.
 # + driveClient - Http client for client connection.
-# + eventService - 'OnEventService' record that represents all events.
-# + return if unsucessful, returns error. 
-function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClient, OnEventService eventService, 
-                   json[] statusStore) returns @tainted EventInfo|error? {
+# + return if unsucessful, returns error. Else EventInfo object
+function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClient, json[] statusStore) 
+                    returns @tainted EventInfo|error? {
     EventInfo info = {};
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
@@ -73,21 +72,21 @@ function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClien
                         log:print("File change event found file id : " + fileOrFolderId + " | Mime type : " +mimeType);
                         if (changeLog?.removed == true) {
                             // eventService.onFileDeletedEvent(fileOrFolderId);
-                            info.eventType = "DELETED";
+                            info.eventType = FILE_DELETED;
                             info.fileOrFolderId = fileOrFolderId;
                             return info;
                         } else {
                             log:print(">>>>>>>>@@");
-                            return identifyFileEvent(fileOrFolderId, eventService, driveClient, statusStore);
+                            return identifyFileEvent(fileOrFolderId, driveClient, statusStore);
                         }
                     } else  {
                         log:print("Folder change event found folder id : " + fileOrFolderId);
                         if (changeLog?.removed == true) {
-                            info.eventType = "DELETED";
+                            info.eventType = FOLDER_DELETED;
                             info.isFolder = true;
                             // eventService.onFolderDeletedEvent(fileOrFolderId);
                         } else {
-                            return identifyFolderEvent(fileOrFolderId, eventService, driveClient, statusStore);
+                            return identifyFolderEvent(fileOrFolderId, driveClient, statusStore);
                         }
                     }
                 }
@@ -102,10 +101,10 @@ function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClien
 # + folderId - folderId that subjected to a change. 
 # + statusStore - JSON that carries the current status (optional).
 # + driveClient - Http client for client connection.
-# + eventService - 'OnEventService' record that represents all events.
-# + return if unsucessful, returns error. 
-function identifyFolderEvent(string folderId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
-                             boolean isSepcificFolder = false, string? specFolderId = ()) returns @tainted EventInfo|error? {
+# + return if unsucessful, returns error. Else EventInfo object
+function identifyFolderEvent(string folderId, drive:Client driveClient, json[] statusStore, 
+                             boolean isSepcificFolder = false, string? specFolderId = ()) 
+                             returns @tainted EventInfo|error? {
     EventInfo info = {};
     drive:File folder = check driveClient->getFile(folderId, "createdTime,modifiedTime,trashed,parents");
     log:print(folder.toString());
@@ -118,33 +117,47 @@ function identifyFolderEvent(string folderId, OnEventService eventService, drive
     }
     if (isTrashed is boolean) {
         if (!isExisitingFolder && !isTrashed) {
-            info.eventType = "CREATED";
             if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = NEW_FOLDER_CREATED_ON_SPECIFIED_FOLDER;
                 info.fileOrFolderId = folderId;
                 info.isFolder = true;
                 info.onSpecifiedFolder = true;
                 return info;
                 // _ = eventService.onNewFolderCreatedInSpecificFolderEvent(folderId);
             } else if (!isSepcificFolder) {
+                info.eventType = NEW_FOLDER_CREATED;
                 info.fileOrFolderId = folderId;
                 info.isFolder = true;
                 return info;
                 // _ = eventService.onNewFolderCreatedEvent(folderId);
             }
         } else if (isExisitingFolder && isTrashed) {
-            info.eventType = "DELETED";
             if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = FOLDER_DELETED_ON_SPECIFIED_FOLDER;
                 info.fileOrFolderId = folderId;
                 info.isFolder = true;
                 info.onSpecifiedFolder = true;
                 // _ = eventService.onFolderDeletedInSpecificFolderEvent(folderId);
             } else if (!isSepcificFolder) {
+                info.eventType = FOLDER_DELETED;
                 info.fileOrFolderId = folderId;
                 info.isFolder = true;
                 return info;
                 // _ = eventService.onFolderDeletedEvent(folderId);
             }
-        }
+        } 
+        // else if (isExisitingFolder && !isTrashed) {
+        //     info.eventType = UPDATED;
+        //     if (isSepcificFolder && parent == specFolderId.toString()) {
+        //         info.fileOrFolderId = folderId;
+        //         info.isFolder = true;
+        //         info.onSpecifiedFolder = true;
+        //     } else if (!isSepcificFolder) {
+        //         info.fileOrFolderId = folderId;
+        //         info.isFolder = true;
+        //         return info;
+        //     }
+        // }
     } else {
         fail error("error in trash value");
     }
@@ -153,10 +166,10 @@ function identifyFolderEvent(string folderId, OnEventService eventService, drive
 # Maps and identify file change events.
 # + fileId - fileId that subjected to a change. 
 # + driveClient - Http client for client connection.
-# + eventService - 'OnEventService' record that represents all events.
-# + return if unsucessful, returns error. 
-function identifyFileEvent(string fileId, OnEventService eventService, drive:Client driveClient, json[] statusStore, 
-                           boolean isSepcificFolder = false, string? specFolderId = ()) returns @tainted EventInfo|error? {
+# + return if unsucessful, returns error. Else EventInfo object
+function identifyFileEvent(string fileId, drive:Client driveClient, json[] statusStore, 
+                           boolean isSepcificFolder = false, string? specFolderId = ()) 
+                           returns @tainted EventInfo|error? {
     EventInfo info = {};
     drive:File file = check driveClient->getFile(fileId, "createdTime,modifiedTime,trashed,parents");
     boolean isExisitingFile = check checkAvailability(fileId, statusStore);
@@ -167,33 +180,47 @@ function identifyFileEvent(string fileId, OnEventService eventService, drive:Cli
         parent = parentList[0].toString();
     }
     if (isTrashed is boolean) {
+        info.fileOrFolderId = fileId;
         log:print(">>>>>>>>$$$");
         log:print(">>>>>>>>$$$"+isExisitingFile.toString());
         log:print(">>>>>>>>$$$"+isTrashed.toString());
         if (!isExisitingFile && !isTrashed) {
             log:print(">>>>>>>>%%%");
-            info.eventType = "CREATED";
             if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = NEW_FILE_CREATED_ON_SPECIFIED_FOLDER;
                 info.onSpecifiedFolder = true;
                 log:print(">>>>>>>>1");
                 return info;
                 // _ = eventService.onNewFileCreatedInSpecificFolderEvent(fileId);
             } else if (!isSepcificFolder) {
                 log:print(">>>>>>>>2");
+                info.eventType = NEW_FILE_CREATED;
                 return info;
                 // _ = eventService.onNewFileCreatedEvent(fileId);
             }
         } else if (isExisitingFile && isTrashed) {
-            info.eventType = "DELETED";
             if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = FILE_DELETED_ON_SPECIFIED_FOLDER;
                 info.onSpecifiedFolder = true;
                 return info;
                 // _ = eventService.onFileDeletedInSpecificFolderEvent(fileId);
             } else if (!isSepcificFolder) {
+                info.eventType = FILE_DELETED;
                 return info;
                 // _ = eventService.onFileDeletedEvent(fileId);
             }
-        }
+        } 
+        // else if (isExisitingFile && !isTrashed) {
+        //     info.eventType = UPDATED;
+        //     if (isSepcificFolder && parent == specFolderId.toString()) {
+        //         info.onSpecifiedFolder = true;
+        //         return info;
+        //         // _ = eventService.onFileDeletedInSpecificFolderEvent(fileId);
+        //     } else if (!isSepcificFolder) {
+        //         return info;
+        //         // _ = eventService.onFileDeletedEvent(fileId);
+        //     }
+        // }
     } else {
         fail error("error in trash value");
     }
@@ -299,10 +326,9 @@ function validateSpecificFolderExsistence(string folderId, drive:Client driveCli
 #                Stable across different API versions. 
 # + changeList - Record which maps the response from list changes request.
 # + driveClient - Drive connecter client.
-# + eventService - 'OnEventService' object.
-# + return - If unsuccessful, return error.
+# + return - If unsuccessful, return error. Else EventInfo object
 function mapEventForSpecificResource(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
-                                     OnEventService eventService, json[] statusStore) returns @tainted EventInfo|error? {
+                                     json[] statusStore) returns @tainted EventInfo|error? {
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
         foreach drive:Change changeLog in changes {
@@ -310,9 +336,9 @@ function mapEventForSpecificResource(string resourceId, drive:ChangesListRespons
             drive:File fileOrFolder = check driveClient->getFile(fileOrFolderId);
             string? mimeType = fileOrFolder?.mimeType;
             if (mimeType is string && mimeType == FOLDER) {
-                return identifyFolderEvent(fileOrFolderId, eventService, driveClient, statusStore, true, resourceId);
+                return identifyFolderEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
             } else {
-                return identifyFileEvent(fileOrFolderId, eventService, driveClient, statusStore, true, resourceId);
+                return identifyFileEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
             }
         }
     }
@@ -324,10 +350,9 @@ function mapEventForSpecificResource(string resourceId, drive:ChangesListRespons
 #                Stable across different API versions. 
 # + changeList - Record which maps the response from list changes request.
 # + driveClient - Drive connecter client
-# + eventService - 'OnEventService' object 
-# + return - If it is modified, returns boolean(true). Else error.
+# + return - If unsuccessfull returns error, Else EventInfo object
 function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
-                             OnEventService eventService, json[] statusStore) returns @tainted EventInfo|error? {
+                             json[] statusStore) returns @tainted EventInfo|error? {
     EventInfo info  = {};
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
@@ -341,13 +366,13 @@ function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse change
                     boolean isModified = check checkforModificationAftertheLastOne(file?.modifiedTime.toString(), 
                     currentModifedTimeInStore.toString());
                     if (istrashed == true) {
-                        info.eventType = "DELETED";
+                        info.eventType = FOLDER_DELETED;
                         info.fileOrFolderId = fileOrFolderId;
                         return info;
                         // _ = eventService.onFileDeletedEvent(fileOrFolderId); //return record event type (type:enum, fileid)
                     } else if (isModified) {
                         // _ = eventService.onFileUpdateEvent(fileOrFolderId);
-                        info.eventType = "UPDATED";
+                        info.eventType = FILE_UPDATED;
                         info.fileOrFolderId = fileOrFolderId;
                         return info;
                     }
