@@ -23,13 +23,12 @@ import ballerinax/googleapis_drive as drive;
 # + port - Port for the listener.  
 # + specificFolderOrFileId - Folder or file Id.  
 # + callbackURL - Callback URL registered.   
-# + clientConfiguration - Drive client connecter configuration.  
-# + eventService - 'OnEventService' object with supported events. 
+# + clientConfiguration - Drive client connecter configuration.
 public type ListenerConfiguration record {
     int port;
     string callbackURL;
     drive:Configuration clientConfiguration;
-    OnEventService eventService;
+    // OnEventService eventService;
     string? specificFolderOrFileId = ();
 };
 
@@ -41,7 +40,7 @@ public class DriveEventListener {
     private string channelUuid;
     private string watchResourceId;
     private http:Client clientEP;
-    private OnEventService eventService;
+    // private OnEventService eventService;
     private json[] currentFileStatus = [];
     private string specificFolderOrFileId;
     private drive:Client driveClient;
@@ -51,7 +50,7 @@ public class DriveEventListener {
 
     # Listener initialization
     public function init(ListenerConfiguration config) returns @tainted error? {
-        self.eventService = config.eventService;
+        // self.eventService = config.eventService;
         self.httpListener = check new (config.port);
         self.driveClient = check new (config.clientConfiguration);
         if (config.specificFolderOrFileId is string) {
@@ -121,18 +120,21 @@ public class DriveEventListener {
                 self.currentToken = item?.newStartPageToken.toString();
                 if (self.isWatchOnSpecificResource && self.isAFolder) {
                     log:print("Folder watch response processing");
-                    // check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
-                    return mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
-                    <@untainted> self.driveClient, <@untainted> self.eventService, <@untainted> self.currentFileStatus);
+                    EventInfo? eventInfo = check mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
+                    <@untainted> self.driveClient, <@untainted> self.currentFileStatus);
+                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+                    return eventInfo;
                 } else if (self.isWatchOnSpecificResource && self.isAFolder == false) {
                     log:print("File watch response processing");
-                    // check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
-                    return mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, self.eventService, 
+                    EventInfo? eventInfo =  check mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, 
                     self.currentFileStatus);
+                    check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+                    return eventInfo;
                 } else {
                     log:print("Whole drive watch response processing");
-                    // check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
-                    return mapEvents(item, self.driveClient, self.eventService, self.currentFileStatus);
+                    EventInfo? eventInfo = check mapEvents(item, self.driveClient, self.currentFileStatus);
+                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
+                    return eventInfo;
                 }
             }
         }
