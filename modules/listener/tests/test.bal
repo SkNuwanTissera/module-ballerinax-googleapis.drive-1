@@ -32,50 +32,10 @@ drive:Configuration clientConfiguration = {clientConfig: {
         refreshToken: refreshToken
 }};
 
-# Event Trigger class  
-public class EventTrigger {
-    
-    public isolated function onNewFolderCreatedEvent(string folderId) {
-        log:print(TRIGGER_LOG + "New folder was created : " + folderId);
-    }
-
-    public isolated function onFolderDeletedEvent(string folderID) {
-        log:print(TRIGGER_LOG + "This folder was removed to the trashed : " + folderID);
-    }
-
-    public isolated function onNewFileCreatedEvent(string fileId) {
-        log:print(TRIGGER_LOG + "New File was created : " + fileId);
-    }
-
-    public isolated function onFileDeletedEvent(string fileId) {
-        log:print(TRIGGER_LOG + "This File was removed to the trashed : " + fileId);
-    }
-
-    public isolated function onNewFileCreatedInSpecificFolderEvent(string fileId) {
-        log:print(TRIGGER_LOG + "A file with Id " + fileId + " was created in side the folder specified");
-    }
-
-    public isolated function onNewFolderCreatedInSpecificFolderEvent(string folderId) {
-        log:print(TRIGGER_LOG + "A folder with Id " + folderId + " was created in side the folder specified");
-    }
-
-    public isolated function onFolderDeletedInSpecificFolderEvent(string folderId) {
-        log:print(TRIGGER_LOG + "A folder with Id " + folderId + " was deleted in side the folder specified");
-    }
-
-    public isolated function onFileDeletedInSpecificFolderEvent(string fileId) {
-        log:print(TRIGGER_LOG + "A file with Id " + fileId + " was deleted in side the folder specified");
-    }
-    public isolated function onFileUpdateEvent(string fileId) {
-        log:print(TRIGGER_LOG + "File updated : " + fileId);
-    }
-}
-
 ListenerConfiguration congifuration = {
     port: 9090,
     callbackURL: callbackURL,
-    clientConfiguration: clientConfiguration,
-    eventService: new EventTrigger()
+    clientConfiguration: clientConfiguration
 };
 
 listener DriveEventListener gDrivelistener = new (congifuration);
@@ -83,12 +43,24 @@ listener DriveEventListener gDrivelistener = new (congifuration);
 service / on gDrivelistener {
     resource function post gdrive(http:Caller caller, http:Request request) returns @tainted error? {
         EventInfo? eventInfo = check gDrivelistener.findEventType(caller, request);
-        if (eventInfo?.eventType == "CREATED"){
-            log:print("((((((((((((((((CREATED....))))))))))))))))");
-        } else if (eventInfo?.eventType == "DELETED" && eventInfo?.onSpecifiedFolder == false) {
-            log:print("((((((((((((((((DELETED....))))))))))))))))");
-        }  else if (eventInfo?.eventType == "UPDATED" && eventInfo?.onSpecifiedFolder == false) {
-            log:print("((((((((((((((((UPDATED....)))))))))))))))) ID : "+eventInfo?.fileOrFolderId.toString());
+        if (eventInfo?.eventType == NEW_FILE_CREATED){
+            log:print("New File was created : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FILE_DELETED_ON_SPECIFIED_FOLDER) {
+            log:print("New File was created on specified folder : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FILE_DELETED) {
+            log:print("File was deleted: " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FILE_DELETED_ON_SPECIFIED_FOLDER) {
+            log:print("File was deleted on specified folder : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == NEW_FOLDER_CREATED) {
+            log:print("New folder was created : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == NEW_FOLDER_CREATED_ON_SPECIFIED_FOLDER) {
+            log:print("New folder was created on specified folder : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FOLDER_DELETED) {
+            log:print("Folder was deleted : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FOLDER_DELETED_ON_SPECIFIED_FOLDER) {
+            log:print("Folder was deleted on specified folder : " + eventInfo?.fileOrFolderId.toString());
+        } else if (eventInfo?.eventType == FILE_UPDATED) {
+            log:print("File was updated on specified folder : " + eventInfo?.fileOrFolderId.toString());
         }
         http:Response response = new;
         var result = caller->respond(response);
