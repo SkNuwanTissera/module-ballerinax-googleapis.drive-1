@@ -28,30 +28,6 @@ configurable string refreshToken = ?;
 string parentFolderId = "<PLACE_FOLDER_ID_HERE>";
 string fileName = "<NEW_FILE_NAME>";
 
-# Event Trigger class  
-public class EventTrigger {
-    
-    public isolated function onNewFolderCreatedEvent(string folderId) {}
-
-    public isolated function onFolderDeletedEvent(string folderID) {}
-
-    public isolated function onNewFileCreatedEvent(string fileId) {}
-
-    public isolated function onFileDeletedEvent(string fileId) {}
-
-    public isolated function onNewFileCreatedInSpecificFolderEvent(string fileId) {
-        log:print("New folder was created" +fileId+ " in the specied folder");
-    }
-
-    public isolated function onNewFolderCreatedInSpecificFolderEvent(string folderId) {}
-
-    public isolated function onFolderDeletedInSpecificFolderEvent(string folderId) {}
-
-    public isolated function onFileDeletedInSpecificFolderEvent(string fileId) {}
-
-    public isolated function onFileUpdateEvent(string fileId) {}
-}
-
     drive:Configuration config = {
         clientConfig: {
             clientId: clientId,
@@ -65,7 +41,6 @@ public class EventTrigger {
         port: 9090,
         callbackURL: callbackURL,
         clientConfiguration: config,
-        eventService: new EventTrigger(),
         specificFolderOrFileId : parentFolderId
     };
 
@@ -73,11 +48,11 @@ public class EventTrigger {
 
     service / on gDrivelistener {
         resource function post gdrive(http:Caller caller, http:Request request) returns string|error? {
-            error? procesOutput = gDrivelistener.findEventType(caller, request);
-            http:Response response = new;
-            var result = caller->respond(response);
-            if (result is error) {
-                log:printError("Error in responding ", err = result);
+            EventInfo[] eventInfo = check gDrivelistener.findEventTypes(caller, request);
+            foreach EventInfo event in eventInfo {
+                if (event?.eventType == NEW_FILE_CREATED_ON_SPECIFIED_FOLDER) {
+                    log:print("New File was created on specified folder : " + event?.fileOrFolderId.toString());
+                }
             }
         }
     }
