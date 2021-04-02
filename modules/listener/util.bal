@@ -40,17 +40,16 @@ function startWatch(string callbackURL, drive:Client driveClient, string? fileId
 # + driveClient - The HTTP Client
 # + pageToken - The token for continuing a previous list request on the next page. This should be set to the value of 
 #               'nextPageToken' from the previous response or to the response from the getStartPageToken method.
-# + return 'drive:ChangesListResponse[]' on success and error if unsuccessful. 
+# + return 'drive:ChangesListResponse' on success and error if unsuccessful. 
 function getAllChangeList(string pageToken, drive:Client driveClient) 
-                          returns @tainted drive:ChangesListResponse[]|error {
-    drive:ChangesListResponse[] changeList = [];
+                          returns @tainted drive:ChangesListResponse|error {
+    drive:ChangesListResponse response = {};
     string? token = pageToken;
-    while (token is string) {
-        drive:ChangesListResponse response = check driveClient->listChanges(pageToken);
-        changeList.push(response);
+    if (token is string) {
+        response = check driveClient->listChanges(pageToken);
         token = response?.nextPageToken;
     }
-    return changeList;
+    return response;
 }
 
 # Maps Events to Change records
@@ -58,8 +57,8 @@ function getAllChangeList(string pageToken, drive:Client driveClient)
 # + driveClient - Http client for client connection.
 # + return if unsucessful, returns error. Else EventInfo object
 function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClient, json[] statusStore) 
-                    returns @tainted EventInfo|error? {
-    EventInfo info = {};
+                    returns @tainted EventInfo[]|error {
+    EventInfo[] events = [];
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
         foreach drive:Change changeLog in changes {
@@ -72,21 +71,24 @@ function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClien
                         log:print("File change event found file id : " + fileOrFolderId + " | Mime type : " +mimeType);
                         if (changeLog?.removed == true) {
                             // eventService.onFileDeletedEvent(fileOrFolderId);
-                            info.eventType = FILE_DELETED;
-                            info.fileOrFolderId = fileOrFolderId;
-                            return info;
+                            EventInfo event = {eventType:FILE_DELETED, fileOrFolderId:fileOrFolderId};
+                            events.push(event);
                         } else {
-                            log:print(">>>>>>>>@@");
-                            return identifyFileEvent(fileOrFolderId, driveClient, statusStore);
+                            EventInfo? event = check identifyFileEvent(fileOrFolderId, driveClient, statusStore);
+                            if (event is EventInfo){
+                                events.push(event);
+                            }
                         }
                     } else  {
                         log:print("Folder change event found folder id : " + fileOrFolderId);
                         if (changeLog?.removed == true) {
-                            info.eventType = FOLDER_DELETED;
-                            info.isFolder = true;
-                            // eventService.onFolderDeletedEvent(fileOrFolderId);
+                            EventInfo event = {eventType:FOLDER_DELETED, fileOrFolderId:fileOrFolderId};
+                            events.push(event);
                         } else {
-                            return identifyFolderEvent(fileOrFolderId, driveClient, statusStore);
+                            EventInfo? event = check identifyFolderEvent(fileOrFolderId, driveClient, statusStore);
+                            if (event is EventInfo){
+                                events.push(event);
+                            }
                         }
                     }
                 }
@@ -95,6 +97,7 @@ function mapEvents(drive:ChangesListResponse changeList, drive:Client driveClien
             }
         }
     }
+    return events;
 }
 
 # Maps and identify folder change events.
@@ -115,49 +118,38 @@ function identifyFolderEvent(string folderId, drive:Client driveClient, json[] s
     if (parentList is string[] && parentList.length() > 0) {
         parent = parentList[0].toString();
     }
+    info.fileOrFolderId = folderId;
     if (isTrashed is boolean) {
         if (!isExisitingFolder && !isTrashed) {
             if (isSepcificFolder && parent == specFolderId.toString()) {
                 info.eventType = NEW_FOLDER_CREATED_ON_SPECIFIED_FOLDER;
-                info.fileOrFolderId = folderId;
-                info.isFolder = true;
-                info.onSpecifiedFolder = true;
                 return info;
                 // _ = eventService.onNewFolderCreatedInSpecificFolderEvent(folderId);
             } else if (!isSepcificFolder) {
                 info.eventType = NEW_FOLDER_CREATED;
-                info.fileOrFolderId = folderId;
-                info.isFolder = true;
+                // info.isFolder = true;
                 return info;
                 // _ = eventService.onNewFolderCreatedEvent(folderId);
             }
         } else if (isExisitingFolder && isTrashed) {
             if (isSepcificFolder && parent == specFolderId.toString()) {
                 info.eventType = FOLDER_DELETED_ON_SPECIFIED_FOLDER;
-                info.fileOrFolderId = folderId;
-                info.isFolder = true;
-                info.onSpecifiedFolder = true;
                 // _ = eventService.onFolderDeletedInSpecificFolderEvent(folderId);
             } else if (!isSepcificFolder) {
                 info.eventType = FOLDER_DELETED;
-                info.fileOrFolderId = folderId;
-                info.isFolder = true;
+                // info.isFolder = true;
                 return info;
                 // _ = eventService.onFolderDeletedEvent(folderId);
             }
-        } 
-        // else if (isExisitingFolder && !isTrashed) {
-        //     info.eventType = UPDATED;
-        //     if (isSepcificFolder && parent == specFolderId.toString()) {
-        //         info.fileOrFolderId = folderId;
-        //         info.isFolder = true;
-        //         info.onSpecifiedFolder = true;
-        //     } else if (!isSepcificFolder) {
-        //         info.fileOrFolderId = folderId;
-        //         info.isFolder = true;
-        //         return info;
-        //     }
-        // }
+        } else if (isExisitingFolder && !isTrashed) {
+            if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = FOLDER_UPDATED_ON_SPECIFIED_FOLDER;
+                return info;
+            } else if (!isSepcificFolder) {
+                info.eventType = FOLDER_UPDATED;
+                return info;
+            }
+        }
     } else {
         fail error("error in trash value");
     }
@@ -181,19 +173,12 @@ function identifyFileEvent(string fileId, drive:Client driveClient, json[] statu
     }
     if (isTrashed is boolean) {
         info.fileOrFolderId = fileId;
-        log:print(">>>>>>>>$$$");
-        log:print(">>>>>>>>$$$"+isExisitingFile.toString());
-        log:print(">>>>>>>>$$$"+isTrashed.toString());
         if (!isExisitingFile && !isTrashed) {
-            log:print(">>>>>>>>%%%");
             if (isSepcificFolder && parent == specFolderId.toString()) {
                 info.eventType = NEW_FILE_CREATED_ON_SPECIFIED_FOLDER;
-                info.onSpecifiedFolder = true;
-                log:print(">>>>>>>>1");
                 return info;
                 // _ = eventService.onNewFileCreatedInSpecificFolderEvent(fileId);
             } else if (!isSepcificFolder) {
-                log:print(">>>>>>>>2");
                 info.eventType = NEW_FILE_CREATED;
                 return info;
                 // _ = eventService.onNewFileCreatedEvent(fileId);
@@ -201,7 +186,7 @@ function identifyFileEvent(string fileId, drive:Client driveClient, json[] statu
         } else if (isExisitingFile && isTrashed) {
             if (isSepcificFolder && parent == specFolderId.toString()) {
                 info.eventType = FILE_DELETED_ON_SPECIFIED_FOLDER;
-                info.onSpecifiedFolder = true;
+                // info.onSpecifiedFolder = true;
                 return info;
                 // _ = eventService.onFileDeletedInSpecificFolderEvent(fileId);
             } else if (!isSepcificFolder) {
@@ -209,18 +194,17 @@ function identifyFileEvent(string fileId, drive:Client driveClient, json[] statu
                 return info;
                 // _ = eventService.onFileDeletedEvent(fileId);
             }
-        } 
-        // else if (isExisitingFile && !isTrashed) {
-        //     info.eventType = UPDATED;
-        //     if (isSepcificFolder && parent == specFolderId.toString()) {
-        //         info.onSpecifiedFolder = true;
-        //         return info;
-        //         // _ = eventService.onFileDeletedInSpecificFolderEvent(fileId);
-        //     } else if (!isSepcificFolder) {
-        //         return info;
-        //         // _ = eventService.onFileDeletedEvent(fileId);
-        //     }
-        // }
+        } else if (isExisitingFile && !isTrashed) {
+            if (isSepcificFolder && parent == specFolderId.toString()) {
+                info.eventType = FILE_UPDATED_ON_SPECIFIED_FOLDER;
+                return info;
+                // _ = eventService.onFileDeletedInSpecificFolderEvent(fileId);
+            } else if (!isSepcificFolder) {
+                info.eventType = FILE_UPDATED;
+                return info;
+                // _ = eventService.onFileDeletedEvent(fileId);
+            }
+        }
     } else {
         fail error("error in trash value");
     }
@@ -328,20 +312,28 @@ function validateSpecificFolderExsistence(string folderId, drive:Client driveCli
 # + driveClient - Drive connecter client.
 # + return - If unsuccessful, return error. Else EventInfo object
 function mapEventForSpecificResource(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
-                                     json[] statusStore) returns @tainted EventInfo|error? {
+                                    json[] statusStore) returns @tainted EventInfo[]|error {
     drive:Change[]? changes = changeList?.changes;
+    EventInfo[] events = [];
     if (changes is drive:Change[] && changes.length() > 0) {
         foreach drive:Change changeLog in changes {
             string fileOrFolderId = changeLog?.fileId.toString();
             drive:File fileOrFolder = check driveClient->getFile(fileOrFolderId);
             string? mimeType = fileOrFolder?.mimeType;
             if (mimeType is string && mimeType == FOLDER) {
-                return identifyFolderEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
+                EventInfo? event = check identifyFolderEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
+                if (event is EventInfo){
+                    events.push(event);
+                }
             } else {
-                return identifyFileEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
+                EventInfo? event = check identifyFileEvent(fileOrFolderId, driveClient, statusStore, true, resourceId);
+                if (event is EventInfo){
+                    events.push(event);
+                }
             }
         }
     }
+    return events;
 }
 
 # Checks for a modified resource.
@@ -352,8 +344,8 @@ function mapEventForSpecificResource(string resourceId, drive:ChangesListRespons
 # + driveClient - Drive connecter client
 # + return - If unsuccessfull returns error, Else EventInfo object
 function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse changeList, drive:Client driveClient, 
-                             json[] statusStore) returns @tainted EventInfo|error? {
-    EventInfo info  = {};
+                             json[] statusStore) returns @tainted EventInfo[]|error {
+    EventInfo[] events = [];
     drive:Change[]? changes = changeList?.changes;
     if (changes is drive:Change[] && changes.length() > 0) {
         foreach drive:Change changeLog in changes {
@@ -366,23 +358,21 @@ function mapFileUpdateEvents(string resourceId, drive:ChangesListResponse change
                     boolean isModified = check checkforModificationAftertheLastOne(file?.modifiedTime.toString(), 
                     currentModifedTimeInStore.toString());
                     if (istrashed == true) {
-                        info.eventType = FOLDER_DELETED;
-                        info.fileOrFolderId = fileOrFolderId;
-                        return info;
+                        EventInfo event = {eventType:FOLDER_DELETED, fileOrFolderId:fileOrFolderId};
+                        events.push(event);
                         // _ = eventService.onFileDeletedEvent(fileOrFolderId); //return record event type (type:enum, fileid)
                     } else if (isModified) {
                         // _ = eventService.onFileUpdateEvent(fileOrFolderId);
-                        info.eventType = FILE_UPDATED;
-                        info.fileOrFolderId = fileOrFolderId;
-                        return info;
+                        EventInfo event = {eventType:FILE_UPDATED, fileOrFolderId:fileOrFolderId};
+                        events.push(event);
                     }
                 } else {
                     fail error("Error In json modified time of current status");
                 }
-
             }
         }
     }
+    return events;
 }
 
 # Checks for a modified resource.
@@ -423,5 +413,22 @@ function checkMimeType(drive:Client driveClient, string specificParentFolderId) 
             return false;
         }
 
+    }
+}
+
+# Stop all subscriptions for listening.
+# + driveClient - Google drive client
+# + channelUuid - UUID or other unique string you provided to identify this notification channel
+# + watchResourceId - An opaque value that identifies the watched resource
+# 
+# + return - Returns error, if unsuccessful.
+function stopWatchChannel(drive:Client driveClient, string channelUuid, string watchResourceId) returns @tainted error? {
+    boolean|error response = driveClient->watchStop(channelUuid, watchResourceId);
+    if (response is boolean) {
+        log:print("Watch channel stopped");
+        return;
+    } else {
+        log:print("Watch channel was not stopped");
+        return response;
     }
 }
