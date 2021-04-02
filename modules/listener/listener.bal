@@ -28,7 +28,6 @@ public type ListenerConfiguration record {
     int port;
     string callbackURL;
     drive:Configuration clientConfiguration;
-    // OnEventService eventService;
     string? specificFolderOrFileId = ();
 };
 
@@ -40,7 +39,6 @@ public class DriveEventListener {
     private string channelUuid;
     private string watchResourceId;
     private http:Client clientEP;
-    // private OnEventService eventService;
     private json[] currentFileStatus = [];
     private string specificFolderOrFileId;
     private drive:Client driveClient;
@@ -50,7 +48,6 @@ public class DriveEventListener {
 
     # Listener initialization
     public function init(ListenerConfiguration config) returns @tainted error? {
-        // self.eventService = config.eventService;
         self.httpListener = check new (config.port);
         self.driveClient = check new (config.clientConfiguration);
         if (config.specificFolderOrFileId is string) {
@@ -93,12 +90,14 @@ public class DriveEventListener {
         return self.httpListener.'start();
     }
 
-    public isolated function gracefulStop() returns error? {
-        return ();
+    public function gracefulStop() returns @tainted error? {
+        check stopWatchChannel(self.driveClient, self.channelUuid, self.watchResourceId);
+        return self.httpListener.gracefulStop();
     }
 
-    public isolated function immediateStop() returns error? {
-        return self.httpListener.immediateStop();
+    public function immediateStop() returns @tainted error? {
+        check stopWatchChannel(self.driveClient, self.channelUuid, self.watchResourceId);
+        return self.httpListener.gracefulStop();
     }
 
     # Finding event type triggered and retrieve changes list.
@@ -106,8 +105,9 @@ public class DriveEventListener {
     # + caller - The http caller object for responding to requests 
     # + request - The HTTP request.
     # + return - Returns error, if unsuccessful.
-    public function findEventType(http:Caller caller, http:Request request) returns @tainted EventInfo|error? {
+    public function findEventTypes(http:Caller caller, http:Request request) returns @tainted EventInfo[]|error {
         log:print("< RECEIVING A CALLBACK <");
+        EventInfo[] events = [];
         string channelID = check request.getHeader("X-Goog-Channel-ID");
         string messageNumber = check request.getHeader("X-Goog-Message-Number");
         string resourceStates = check request.getHeader("X-Goog-Resource-State");
@@ -115,42 +115,25 @@ public class DriveEventListener {
         if (channelID != self.channelUuid) {
             fail error("Diffrent channel IDs found, Resend the watch request");
         } else {
-            drive:ChangesListResponse[] response = check getAllChangeList(self.currentToken, self.driveClient);
-            foreach drive:ChangesListResponse item in response {
-                self.currentToken = item?.newStartPageToken.toString();
-                if (self.isWatchOnSpecificResource && self.isAFolder) {
-                    log:print("Folder watch response processing");
-                    EventInfo? eventInfo = check mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
-                    <@untainted> self.driveClient, <@untainted> self.currentFileStatus);
-                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
-                    return eventInfo;
-                } else if (self.isWatchOnSpecificResource && self.isAFolder == false) {
-                    log:print("File watch response processing");
-                    EventInfo? eventInfo =  check mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, 
-                    self.currentFileStatus);
-                    check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
-                    return eventInfo;
-                } else {
-                    log:print("Whole drive watch response processing");
-                    EventInfo? eventInfo = check mapEvents(item, self.driveClient, self.currentFileStatus);
-                    check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
-                    return eventInfo;
-                }
+            drive:ChangesListResponse item = check getAllChangeList(self.currentToken, self.driveClient);
+            self.currentToken = item?.newStartPageToken.toString();
+            if (self.isWatchOnSpecificResource && self.isAFolder) {
+                log:print("Folder watch response processing");
+                events = check mapEventForSpecificResource(<@untainted> self.specificFolderOrFileId, <@untainted> item, 
+                <@untainted> self.driveClient, <@untainted> self.currentFileStatus);
+                check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+            } else if (self.isWatchOnSpecificResource && self.isAFolder == false) {
+                log:print("File watch response processing");
+                events = check mapFileUpdateEvents(self.specificFolderOrFileId, item, self.driveClient, 
+                self.currentFileStatus);
+                check getCurrentStatusOfFile(self.driveClient, self.currentFileStatus, self.specificFolderOrFileId);
+            } else {
+                log:print("Whole drive watch response processing");
+                events = check mapEvents(item, self.driveClient, self.currentFileStatus);
+                check getCurrentStatusOfDrive(self.driveClient, self.currentFileStatus);
             }
         }
         log:print("< RECEIVED >");
-    }
-
-    # Stop all subscriptions for listening.
-    # 
-    # + return - Returns error, if unsuccessful.
-    public function stopWatchChannel() returns @tainted error? {
-        boolean|error response = self.driveClient->watchStop(self.channelUuid, self.watchResourceId);
-        if (response is boolean) {
-            log:print("Watch channel stopped");
-        } else {
-            log:print("Watch channel was not stopped");
-            return response;
-        }
+        return events;
     }
 }
