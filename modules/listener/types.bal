@@ -79,11 +79,12 @@ public type OnEventService object {
 };
 
 # Record type used to handle the Events
+# 
+# + eventType - Enum that handles the event type
+# + fileOrFolderId - File or folder id related to the event
 public type EventInfo record {
     EventType eventType?;
     string fileOrFolderId?;
-    boolean isFolder = false;
-    boolean onSpecifiedFolder = false;
 };
 
 # Represents event type
@@ -92,9 +93,12 @@ public enum EventType {
     NEW_FOLDER_CREATED,
     FOLDER_DELETED_ON_SPECIFIED_FOLDER,
     FOLDER_DELETED,
+    FOLDER_UPDATED_ON_SPECIFIED_FOLDER,
+    FOLDER_UPDATED,
     NEW_FILE_CREATED_ON_SPECIFIED_FOLDER,
     NEW_FILE_CREATED,
     FILE_DELETED_ON_SPECIFIED_FOLDER,
     FILE_DELETED,
+    FILE_UPDATED_ON_SPECIFIED_FOLDER,
     FILE_UPDATED
 }
