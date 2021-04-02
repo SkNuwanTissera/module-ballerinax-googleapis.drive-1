@@ -42,25 +42,33 @@ listener DriveEventListener gDrivelistener = new (congifuration);
 
 service / on gDrivelistener {
     resource function post gdrive(http:Caller caller, http:Request request) returns @tainted error? {
-        EventInfo? eventInfo = check gDrivelistener.findEventType(caller, request);
-        if (eventInfo?.eventType == NEW_FILE_CREATED){
-            log:print("New File was created : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FILE_DELETED_ON_SPECIFIED_FOLDER) {
-            log:print("New File was created on specified folder : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FILE_DELETED) {
-            log:print("File was deleted: " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FILE_DELETED_ON_SPECIFIED_FOLDER) {
-            log:print("File was deleted on specified folder : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == NEW_FOLDER_CREATED) {
-            log:print("New folder was created : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == NEW_FOLDER_CREATED_ON_SPECIFIED_FOLDER) {
-            log:print("New folder was created on specified folder : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FOLDER_DELETED) {
-            log:print("Folder was deleted : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FOLDER_DELETED_ON_SPECIFIED_FOLDER) {
-            log:print("Folder was deleted on specified folder : " + eventInfo?.fileOrFolderId.toString());
-        } else if (eventInfo?.eventType == FILE_UPDATED) {
-            log:print("File was updated on specified folder : " + eventInfo?.fileOrFolderId.toString());
+        EventInfo[] eventInfo = check gDrivelistener.findEventTypes(caller, request);
+        foreach EventInfo event in eventInfo {
+            if (event?.eventType == NEW_FILE_CREATED){
+                log:print("New File was created : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == NEW_FILE_CREATED_ON_SPECIFIED_FOLDER) {
+                log:print("New File was created on specified folder : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FILE_DELETED) {
+                log:print("File was deleted: " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FILE_DELETED_ON_SPECIFIED_FOLDER) {
+                log:print("File was deleted on specified folder : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FILE_UPDATED) {
+                log:print("File was updated : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FILE_UPDATED_ON_SPECIFIED_FOLDER) {
+                log:print("File was updated on specified folder : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == NEW_FOLDER_CREATED) {
+                log:print("New folder was created : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == NEW_FOLDER_CREATED_ON_SPECIFIED_FOLDER) {
+                log:print("New folder was created on specified folder : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FOLDER_DELETED) {
+                log:print("Folder was deleted : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FOLDER_DELETED_ON_SPECIFIED_FOLDER) {
+                log:print("Folder was deleted on specified folder : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FOLDER_UPDATED) {
+                log:print("Folder was updated : " + event?.fileOrFolderId.toString());
+            } else if (event?.eventType == FOLDER_UPDATED_ON_SPECIFIED_FOLDER) {
+                log:print("Folder was updated on specified folder : " + event?.fileOrFolderId.toString());
+            }
         }
         http:Response response = new;
         var result = caller->respond(response);
