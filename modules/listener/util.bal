@@ -324,7 +324,7 @@ isolated function checkforModificationAftertheLastOne(string eventTime, string l
     time:Utc eventTimeUNIX = check time:utcFromString(eventTime);
     time:Utc lastRecordedTimeUNIX = check time:utcFromString(lastRecordedTime);
     time:Seconds due = time:utcDiffSeconds(eventTimeUNIX, lastRecordedTimeUNIX);
-    if (due < 0) {
+    if (due < 0d) {
         isModified = true;
     }
     return isModified;

@@ -16,14 +16,15 @@
 
 import ballerina/http;
 import ballerina/log;
+import ballerina/os;
 import ballerina/test;
 import ballerinax/googleapis_drive as drive;
 
-configurable string callbackURL = ?;
-configurable string clientId = ?;
-configurable string clientSecret = ?;
+configurable string callbackURL = os:getEnv("CALLBACK_URL");
+configurable string clientId = os:getEnv("CLIENT_ID");
+configurable string clientSecret = os:getEnv("CLIENT_SECRET");
 configurable string refreshUrl = drive:REFRESH_URL;
-configurable string refreshToken = ?;
+configurable string refreshToken = os:getEnv("REFRESH_TOKEN");
 
 drive:Configuration clientConfiguration = {clientConfig: {
         clientId: clientId,
