@@ -75,7 +75,7 @@ public class EventTrigger {
             http:Response response = new;
             var result = caller->respond(response);
             if (result is error) {
-                log:printError("Error in responding ", err = result);
+                log:printError("Error in responding ", err = result.message());
             }
         }
     }

@@ -32,6 +32,8 @@ drive:File payloadFileMetadata = {
     description : "<GIVE_THE_DESCRIPTION>"
 };
 
+string fileId = "<PLACE_YOUR_FILE_ID_HERE>";
+
 ###################################################################################
 # Update file with metadata
 ###################################################################################
@@ -52,8 +54,8 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
-    drive:File|error res = updateFileMetadataById(fileId, payloadFileMetadata, optionalsFileMetadata);
+    drive:Client driveClient = checkpanic new (config);
+    drive:File|error res = driveClient->updateFileMetadataById(fileId, payloadFileMetadata, optionalsFileMetadata);
     //Print file ID
     if(res is drive:File){
         string id = res?.id.toString();

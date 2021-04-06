@@ -24,9 +24,8 @@ configurable string refreshToken = os:getEnv("REFRESH_TOKEN");
 configurable string refreshUrl = os:getEnv("REFRESH_URL");
 
 ##########################
-# Search Gsheets by name
+# Search Gslides by name
 # ########################
-
 
 public function main() {
     drive:Configuration config = {
@@ -37,10 +36,10 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
-    stream<drive:File>|error res = driveClient->getSpreadsheetsByName("ballerina");
-    // stream<drive:File>|error res = driveClient->getSpreadsheetsByName("ballerina", 2);
-    // stream<drive:File>|error res = driveClient->getSpreadsheetsByName("ballerina", 2, "createdTime");
+    drive:Client driveClient = checkpanic new (config);
+    stream<drive:File>|error res = driveClient->getSlidesByName("ballerina");
+    // stream<drive:File>|error res = driveClient->getSlidesByName("ballerina", 2);
+    // stream<drive:File>|error res = driveClient->getSlidesByName("ballerina", 2, "createdTime");
     if (res is stream<drive:File>){
         error? e = res.forEach(function (drive:File file) {
             json|error jsonObject = file.cloneWithType(json);

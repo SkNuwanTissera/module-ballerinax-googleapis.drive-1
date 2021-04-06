@@ -41,7 +41,7 @@ public function main() {
     drive:ListFilesOptional optionalSearch = {
         orderBy : "createdTime"
     };
-    drive:Client driveClient = new (config);
+    drive:Client driveClient = checkpanic new (config);
     stream<drive:File>|error res = driveClient->getFiles(optionalSearch);
     if (res is stream<drive:File>){
         error? e = res.forEach(function (drive:File file) {

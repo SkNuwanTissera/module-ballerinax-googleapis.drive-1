@@ -64,7 +64,7 @@ updating and retrieving.
 Java Development Kit (JDK) with version 11 is required.
 
 * Download the Ballerina [distribution](https://ballerinalang.org/downloads/)
-Ballerina Swan Lake Alpha 2 is required.
+Ballerina Swan Lake Alpha 4 SNAPSHOT is required.
 
 * Domain used in the callback URL needs to be registered in google console as a verified domain.
 https://console.cloud.google.com/apis/credentials/domainverification
@@ -75,7 +75,7 @@ https://console.cloud.google.com/apis/credentials/domainverification
 
 |                             |            Versions             |
 |:---------------------------:|:-------------------------------:|
-| Ballerina Language          |     Swan Lake Alpha2            |
+| Ballerina Language          |     Swan Lake Alpha4 SNAPSHOT   |
 | Google Drive API            |             V3                  |
 
 ## Limitations
@@ -286,11 +286,11 @@ time = 2021-03-15 12:06:40,798 level = INFO  module = ballerinax/googleapis_driv
 
         > **Note:** Set the JAVA_HOME environment variable to the pathname of the directory into which you installed JDK.
 
-2. Download and install [Ballerina Alpha 2](https://ballerina.io/). 
+2. Download and install [Ballerina Alpha 4 SNAPSHOT](https://ballerina.io/). 
 
 ### Building the Source
 
-Execute the commands below to build from the source after installing Ballerina Alpha 2 version.
+Execute the commands below to build from the source after installing Ballerina Alpha 4 SNAPSHOT version.
 
 1. To clone the repository:
 Clone this repository using the following command:

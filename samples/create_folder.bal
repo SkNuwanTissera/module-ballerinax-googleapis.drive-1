@@ -46,8 +46,8 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
-    drive:File|error res = driveClient->createFolder(name);
+    drive:Client driveClient = checkpanic new (config);
+    drive:File|error res = driveClient->createFolder(folderName);
     // drive:File|error response = driveClient->createFolder(folderName, parentFolderId);
     //Print folder ID
     if(res is drive:File){

@@ -36,11 +36,11 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
+    drive:Client driveClient = checkpanic new (config);
     stream<drive:File>|error res = driveClient->getAllSpreadsheets();
     if (res is stream<drive:File>){
         error? e = res.forEach(function (drive:File file) {
-            log:printInfo(res?.id.toString());
+            log:printInfo(file?.id.toString());
         });
     }
 }
