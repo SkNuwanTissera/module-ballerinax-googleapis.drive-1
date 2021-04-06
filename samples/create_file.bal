@@ -40,15 +40,15 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
+    drive:Client driveClient = checkpanic new (config);
     drive:File|error response = driveClient->createFile(fileName);
     // drive:File|error response = driveClient->createFile(fileName, DOCUMENT);
     // drive:File|error response = driveClient->createFile(fileName, DOCUMENT, parentFolderId);
     //Print folder ID
-    if(res is drive:File){
-        string id = res?.id.toString();
+    if(response is drive:File){
+        string id = response?.id.toString();
         log:printInfo(id);
     } else {
-        log:printError(res.message());
+        log:printError(response.message());
     }
 }

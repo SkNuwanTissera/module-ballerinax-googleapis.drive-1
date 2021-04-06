@@ -23,7 +23,7 @@ configurable string clientSecret = os:getEnv("CLIENT_SECRET");
 configurable string refreshToken = os:getEnv("REFRESH_TOKEN");
 configurable string refreshUrl = os:getEnv("REFRESH_URL");
 
-string fileId = "<PLACE_YOUR_FILE_ID_HERE>";
+string downloadFileId = "<PLACE_YOUR_FILE_ID_HERE>";
 
 ##################################################################################
 # Download file
@@ -41,7 +41,7 @@ public function main() {
             refreshToken: refreshToken
         }
     };
-    drive:Client driveClient = new (config);
+    drive:Client driveClient = checkpanic new (config);
     string|error response = driveClient->downloadFile(downloadFileId);
     //Print download link
     if(response is string){
