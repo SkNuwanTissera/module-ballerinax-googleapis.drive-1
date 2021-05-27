@@ -56,8 +56,11 @@ public function main() returns error? {
         mimeType : "application/vnd.google-apps.document",
         description : "A short description of the file"
     };
-    drive:File|error response = driveClient->updateFileMetadataById(fileId, payloadFileMetadata);
-    if (response is drive:File) {
-        log:printInfo(response.toString());
-    }
+    //
+    // Keeping the following commented until display annotation provides hide:true option
+    //
+    // drive:File|error response = driveClient->updateFileMetadataById(fileId, payloadFileMetadata);
+    // if (response is drive:File) {
+    //     log:printInfo(response.toString());
+    // }
 }

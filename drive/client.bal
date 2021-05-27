@@ -331,34 +331,36 @@ public client class Client {
         return updateFileById(self.httpClient, fileId, fileResource);
     }
 
-    # Update file metadata using the fileID.
-    # 
-    # + fileId - ID of the file to be updated
-    # + optional - 'UpdateFileMetadataOptional' used to add query parameters to the request
-    # + fileResource - 'File' can added as a payload to change metadata
-    # + return - If successful, returnsoptionalsFileMetadata `File`. Else returns `error`
-    @display {label: "Update file metadata by id"}
-    remote isolated function updateFileMetadataById(@display {label: "File Id"} string fileId, 
-                                                    @display {label: "File Resource"} 
-                                                    File? fileResource = (), 
-                                                    @display {label: "Optional Parameters"} 
-                                                    UpdateFileMetadataOptional? optional = ()) 
-                                                    returns @tainted @display {label: "File"} File|error {
-        return updateFileById(self.httpClient, fileId, fileResource, optional);
-    }
+    // Keeping the following 2 functions commented until display annotation provides hide:true option
+    //
+    // # Update file metadata using the fileID.
+    // # 
+    // # + fileId - ID of the file to be updated
+    // # + optional - 'UpdateFileMetadataOptional' used to add query parameters to the request
+    // # + fileResource - 'File' can added as a payload to change metadata
+    // # + return - If successful, returnsoptionalsFileMetadata `File`. Else returns `error`
+    // @display {label: "Update file metadata by id"}
+    // remote isolated function updateFileMetadataById(@display {label: "File Id"} string fileId, 
+    //                                                 @display {label: "File Resource"} 
+    //                                                 File? fileResource = (), 
+    //                                                 @display {label: "Optional Parameters"} 
+    //                                                 UpdateFileMetadataOptional? optional = ()) 
+    //                                                 returns @tainted @display {label: "File"} File|error {
+    //     return updateFileById(self.httpClient, fileId, fileResource, optional);
+    // }
 
-    # Create new file.
-    # 
-    # + optional - 'CreateFileOptional' used to add query parameters to the request
-    # + fileData - 'File' Metadata is send to in the payload 
-    # + return - If successful, returns `File`. Else returns `error`
-    @display {label: "Create metadata file"}
-    remote isolated function createMetaDataFile(@display {label: "Create Optional Parameters"} 
-                                                CreateFileOptional? optional = (), 
-                                                @display {label: "File Data"} File? fileData = ()) 
-                                                returns @tainted @display {label: "File"} File|error {
-        return createMetaDataFile(self.httpClient, fileData, optional);
-    }
+    // # Create new file.
+    // # 
+    // # + optional - 'CreateFileOptional' used to add query parameters to the request
+    // # + fileData - 'File' Metadata is send to in the payload 
+    // # + return - If successful, returns `File`. Else returns `error`
+    // @display {label: "Create metadata file"}
+    // remote isolated function createMetaDataFile(@display {label: "Create Optional Parameters"} 
+    //                                             CreateFileOptional? optional = (), 
+    //                                             @display {label: "File Data"} File? fileData = ()) 
+    //                                             returns @tainted @display {label: "File"} File|error {
+    //     return createMetaDataFile(self.httpClient, fileData, optional);
+    // }
 
     # Create new file.
     # 

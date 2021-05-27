@@ -55,12 +55,15 @@ public function main() {
         }
     };
     drive:Client driveClient = checkpanic new (config);
-    drive:File|error res = driveClient->updateFileMetadataById(fileId, payloadFileMetadata, optionalsFileMetadata);
-    //Print file ID
-    if(res is drive:File){
-        string id = res?.id.toString();
-        log:printInfo(id);
-    } else {
-        log:printError(res.message());
-    }  
+    //
+    // Keeping the following commented until display annotation provides hide:true option
+    //
+    // drive:File|error res = driveClient->updateFileMetadataById(fileId, payloadFileMetadata, optionalsFileMetadata);
+    // //Print file ID
+    // if(res is drive:File){
+    //     string id = res?.id.toString();
+    //     log:printInfo(id);
+    // } else {
+    //     log:printError(res.message());
+    // }  
 }

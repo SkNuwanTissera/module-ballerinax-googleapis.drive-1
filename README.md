@@ -302,7 +302,7 @@ Configuration config = {
     stream<File>|error response = driveClient->getSlidesByName("ballerina");
     stream<File>|error response = driveClient->getSlidesByName("ballerina", "createdTime");
 ```
-### Update metadata in a file
+<!-- ### Update metadata in a file
 ```ballerina
     UpdateFileMetadataOptional optionalsFileMetadata = {
         addParents : parentFolder
@@ -311,7 +311,7 @@ Configuration config = {
         name : "test"
     };
     File|error res = driveClient->updateFileMetadataById(fileId, optionalsFileMetadata, payloadFileMetadata);
-```
+``` -->
 ### Download file
 ```ballerina
     string|error response = driveClient->downloadFile(fileId);
@@ -320,7 +320,7 @@ Configuration config = {
 ```ballerina
     boolean|error response = driveClient->deleteFile(fileId);
 ```
-### Create folder with metadata
+<!-- ### Create folder with metadata
 More details : https://developers.google.com/drive/api/v3/reference/files/update
 ```ballerina
     CreateFileOptional optionals_create_folder = {
@@ -331,7 +331,7 @@ More details : https://developers.google.com/drive/api/v3/reference/files/update
         name : "folderInTheRoot"
     };
     File|error res = driveClient->createMetaDataFile(optionals_create_folder, payload_create_folder);
-```
+``` -->
 ### Upload file
 ```ballerina
     File|error response = driveClient->uploadFile(localFilePath);

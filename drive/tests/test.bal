@@ -173,7 +173,8 @@ function testRenameFile() {
 # ##########################
 
 @test:Config {
-    dependsOn: [testCreateFile]
+    dependsOn: [testCreateFile],
+    enable : false
 }
 function testUpdateFile() {
     log:printInfo("Gdrive Client -> testUpdateFile()");
