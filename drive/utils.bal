@@ -600,9 +600,8 @@ isolated function uploadFile(http:Client httpClient, string filePath, File? file
 # + httpClient - The HTTP Client
 # + optional - 'ListFilesOptional' used to add query parameters to the request
 # + return - If successful, returns stream of files `stream<File>`. Else returns `error`
-isolated function getFiles(http:Client httpClient, ListFilesOptional? optional) returns @tainted stream<File>|error {
-    File[] files = [];
-    return getFilesStream(httpClient, files, optional);
+isolated function getFiles(http:Client httpClient, ListFilesOptional optional) returns @tainted stream<File,error>|error {
+    return new stream<File,error>(new FileStream(httpClient, optional));
 }
 
 # Get files stream.

@@ -75,7 +75,7 @@ public client class Client {
     @display {label: "Get All Files"}
     remote isolated function getAllFiles(@display {label: "Filter String"} string? filterString = (), 
                                         @display {label: "Order By"} string? orderBy = ()) 
-                                returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {
             pageSize : 1000,
             supportsAllDrives : false
@@ -99,7 +99,7 @@ public client class Client {
     @display {label: "Get Files By Name"}
     remote isolated function getFilesByName(@display {label: "File Name"} string fileName, 
                                    @display {label: "Order By"} string? orderBy = ())    
-                                   returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                   returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + fileName + SINGLE_QUOTE + SPACE + AND 
                     + SPACE + TRASH_FALSE;
@@ -116,7 +116,7 @@ public client class Client {
     # 
     # + return - If successful, returns stream of files `stream<File>`. Else returns `error`
     @display {label: "Get All Spreadsheets"}
-    remote isolated function getAllSpreadsheets() returns @tainted @display {label: "File Stream"} stream<File>|error {
+    remote isolated function getAllSpreadsheets() returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + SHEETS;
         optional.q = searchString;
@@ -135,7 +135,7 @@ public client class Client {
     @display {label: "Get Spreadsheets"}
     remote isolated function getSpreadsheetsByName(@display {label: "File Name"} string fileName, 
                                           @display {label: "Order By"} string? orderBy = ()) 
-                                          returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                          returns @tainted @display {label: "File Stream"} stream<File,error>|error{
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + fileName + SINGLE_QUOTE + SPACE + AND 
                                 + SPACE + TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + SHEETS;
@@ -158,7 +158,7 @@ public client class Client {
     @display {label: "Get Documents"}
     remote isolated function getDocumentsByName(@display {label: "File Name"} string fileName, 
                                        @display {label: "Order By"} string? orderBy = ()) 
-                                       returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                       returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + fileName + SINGLE_QUOTE + SPACE + AND 
                     + SPACE + TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + DOCS;
@@ -181,7 +181,7 @@ public client class Client {
     @display {label: "Get Forms"}
     remote isolated function getFormsByName(@display {label: "File Name"} string fileName, 
                                    @display {label: "Order By"} string? orderBy = ()) 
-                                   returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                   returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + fileName + SINGLE_QUOTE + SPACE + AND
                      + SPACE + TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + FORMS;
@@ -204,7 +204,7 @@ public client class Client {
     @display {label: "Get Slides"}
     remote isolated function getSlidesByName(@display {label: "File Name"} string fileName, 
                                     @display {label: "Order By"} string? orderBy = ()) 
-                                    returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                    returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + fileName + SINGLE_QUOTE + SPACE + AND
                          + SPACE + TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + SLIDES;
@@ -227,7 +227,7 @@ public client class Client {
     @display {label: "Get Folders"}
     remote isolated function getFoldersByName(@display {label: "Folder Name"} string folderName, 
                                      @display {label: "Order By"} string? orderBy = ()) 
-                                     returns @tainted @display {label: "File Stream"} stream<File>|error {
+                                     returns @tainted @display {label: "File Stream"} stream<File,error>|error {
         ListFilesOptional optional = {};
         string searchString = NAME + SPACE + CONTAINS + SPACE + SINGLE_QUOTE + folderName + SINGLE_QUOTE + SPACE + AND 
                         +  SPACE + TRASH_FALSE + SPACE + AND + SPACE + MIME_TYPE + EQUAL + FOLDERS;

@@ -37,8 +37,8 @@ public function main() {
         }
     };
     drive:Client driveClient = checkpanic new (config);
-    stream<drive:File>|error res = driveClient->getAllSpreadsheets();
-    if (res is stream<drive:File>){
+    stream<drive:File,error>|error res = driveClient->getAllSpreadsheets();
+    if (res is stream<drive:File, error>){
         error? e = res.forEach(function (drive:File file) {
             log:printInfo(file?.id.toString());
         });

@@ -231,15 +231,17 @@ function testCreateFile() {
 @test:Config {}
 function testGetFilesByName() {
     log:printInfo("Gdrive Client -> testGetFilesByName()");
-    stream<File>|error response = driveClient->getFilesByName("ballerina");
-    // stream<File>|error response = driveClient->getFilesByName("ballerina", "createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getFilesByName("ballerina");
+    // stream<File,error>|error response = driveClient->getFilesByName("ballerina", "createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -250,15 +252,17 @@ function testGetFilesByName() {
 @test:Config {}
 function testGetFoldersByName() {
     log:printInfo("Gdrive Client -> testGetFoldersByName()");
-    stream<File>|error response = driveClient->getFoldersByName("ballerina");
-    // stream<File>|error response = driveClient->getFoldersByName("ballerina", "createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getFoldersByName("ballerina");
+    // stream<File,error>|error response = driveClient->getFoldersByName("ballerina", "createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -269,15 +273,17 @@ function testGetFoldersByName() {
 @test:Config {}
 function testAllGetFiles() { 
     log:printInfo("Gdrive Client -> testAllGetFiles()");
-    stream<File>|error response = driveClient->getAllFiles("not name contains 'hello'");
-    // stream<File>|error response = driveClient->getAllFiles();
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getAllFiles("not name contains 'hello'");
+    // stream<File,error>|error response = driveClient->getAllFiles();
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -288,14 +294,16 @@ function testAllGetFiles() {
 @test:Config {}
 function testGetAllSpreadsheets() {
     log:printInfo("Gdrive Client -> testGetAllSpreadsheets()");
-    stream<File>|error response = driveClient->getAllSpreadsheets();
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getAllSpreadsheets();
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -306,15 +314,17 @@ function testGetAllSpreadsheets() {
 @test:Config {}
 function testGetSpreadsheetsByName() {
     log:printInfo("Gdrive Client -> testGetSpreadsheetsByName()");
-    stream<File>|error response = driveClient->getSpreadsheetsByName("ballerina");
-    // stream<File>|error response = driveClient->getSpreadsheetsByName("ballerina","createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getSpreadsheetsByName("ballerina");
+    // stream<File,error>|error response = driveClient->getSpreadsheetsByName("ballerina","createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -325,15 +335,17 @@ function testGetSpreadsheetsByName() {
 @test:Config {}
 function testGetDocumentsByName() {
     log:printInfo("Gdrive Client -> testGetDocumentsByName()");
-    stream<File>|error response = driveClient->getDocumentsByName("ballerina");
-    // stream<File>|error response = driveClient->getDocumentsByName("ballerina", "createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getDocumentsByName("ballerina");
+    // stream<File,error>|error response = driveClient->getDocumentsByName("ballerina", "createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -344,15 +356,17 @@ function testGetDocumentsByName() {
 @test:Config {}
 function testGetFormsByName() {
     log:printInfo("Gdrive Client -> testGetFormsByName()");
-    stream<File>|error response = driveClient->getFormsByName("ballerina");
-    // stream<File>|error response = driveClient->getFormsByName("ballerina", "createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getFormsByName("ballerina");
+    // stream<File,error>|error response = driveClient->getFormsByName("ballerina", "createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 
@@ -363,15 +377,17 @@ function testGetFormsByName() {
 @test:Config {}
 function testGetSlidesByName() {
     log:printInfo("Gdrive Client -> testGetSlidesByName()");
-    stream<File>|error response = driveClient->getSlidesByName("ballerina");
-    // stream<File>|error response = driveClient->getSlidesByName("ballerina", "createdTime");
-    if (response is stream<File>){
-        error? e = response.forEach(isolated function (File response) {
-            test:assertNotEquals(response?.id, EMPTY_STRING, msg = "Expect File id");
-        });
+    stream<File,error>|error response = driveClient->getSlidesByName("ballerina");
+    // stream<File,error>|error response = driveClient->getSlidesByName("ballerina", "createdTime");
+    if (response is stream<File,error>) {
+        record {|File value;|}|error? fileResponse = response.next();
+        if (fileResponse is record {|File value;|}) {
+            test:assertNotEquals(fileResponse.value["id"], "", msg = "Found 0 records");
+        } else if (fileResponse is error) {
+            test:assertFail(fileResponse.message());
+        }
     } else {
         test:assertFail(response.message());
-        log:printError(response.message());
     }
 }
 

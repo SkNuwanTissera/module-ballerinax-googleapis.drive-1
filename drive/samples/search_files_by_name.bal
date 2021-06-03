@@ -57,9 +57,9 @@ public function main() {
         }
     };
     drive:Client driveClient = checkpanic new (config);    
-    stream<drive:File>|error res = driveClient->getFilesByName("ballerina");
-    // stream<drive:File>|error res = driveClient->getFilesByName("ballerina", 2);
-    // stream<drive:File>|error res = driveClient->getFilesByName("ballerina", 2, "createdTime");
+    stream<drive:File,error>|error res = driveClient->getFilesByName("ballerina");
+    // stream<drive:File,error>|error res = driveClient->getFilesByName("ballerina", 2);
+    // stream<drive:File,error>|error res = driveClient->getFilesByName("ballerina", 2, "createdTime");
     if (res is stream<drive:File>){
         error? e = res.forEach(function (drive:File file) {
             json|error jsonObject = file.cloneWithType(json);

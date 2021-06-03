@@ -39,13 +39,13 @@ public function main() {
         }
     };
     drive:Client driveClient = checkpanic new (config);
-    stream<drive:File>|error res = driveClient->getAllFiles();
-    if (res is stream<drive:File>){
-        error? e = res.forEach(function (drive:File file) {
-            json|error jsonObject = file.cloneWithType(json);
-            if (jsonObject is json) {
-                log:printInfo(jsonObject.toString());
-            }
-        });
-    }
+    stream<drive:File,error>|error res = driveClient->getAllFiles();
+    // if (res is stream<drive:File, error>){
+    //     error? e = res.forEach(function (drive:File file) {
+    //         json|error jsonObject = file.cloneWithType(json);
+    //         if (jsonObject is json) {
+    //             log:printInfo(jsonObject.toString());
+    //         }
+    //     });
+    // }
 }
