@@ -68,7 +68,7 @@ const string ERR_FILE_TO_JSON_CONVERSION = "Unable to convert the file to JSON v
 const string ERR_JSON_TO_STRING_CONVERSION = "Unable to convert from JSON to string";
 const string HTTP_ERROR_MSG = "Error occurred while getting the HTTP response : ";
 const string ERR_EXTRACTING_ERROR_MSG = "Error occured while extracting errors from payload.";
-const string JSON_ACCESSING_ERROR_MSG = "Error occurred while accessing the JSON payload of the response.";
+const string ERR_INVALID_FILE_OR_FOLDER ="Cannot register watch to file or folder specified";
 
 // Optional Query Parameters
 const string ACKKNOWLEDGE_ABUSE = "acknowledgeAbuse";
